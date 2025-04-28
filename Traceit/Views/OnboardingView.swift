@@ -40,6 +40,7 @@ struct OnboardingView: View {
                             currentPage -= 1
                         }
                     }
+                    .font(.interMedium(size: 16))
                 }
                 
                 Spacer()
@@ -48,6 +49,7 @@ struct OnboardingView: View {
                     Button("Get Started") {
                         appState.shouldShowOnboarding = false
                     }
+                    .font(.interMedium(size: 16))
                     .buttonStyle(.borderedProminent)
                 } else {
                     Button("Next") {
@@ -55,10 +57,12 @@ struct OnboardingView: View {
                             currentPage += 1
                         }
                     }
+                    .font(.interMedium(size: 16))
                 }
             }
             .padding()
         }
+        .background(Color.appMintCream)
     }
 }
 
@@ -76,15 +80,16 @@ struct OnboardingPageView: View {
         VStack(spacing: 20) {
             Image(systemName: page.imageName)
                 .font(.system(size: 100))
-                .foregroundColor(.blue)
+                .foregroundColor(Color.appSandyBrown)
                 .padding()
             
             Text(page.title)
-                .font(.title)
-                .fontWeight(.bold)
+                .font(.interBold(size: 28))
+                .foregroundColor(Color.appSmokyBlack)
             
             Text(page.description)
-                .font(.body)
+                .font(.interRegular(size: 17))
+                .foregroundColor(Color.appSmokyBlack.opacity(0.7))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }

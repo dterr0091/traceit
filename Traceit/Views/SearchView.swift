@@ -7,18 +7,27 @@ struct SearchView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                searchBar
-                
-                if viewModel.isLoading {
-                    loadingView
-                } else if viewModel.searchResults.isEmpty && !viewModel.searchText.isEmpty {
-                    emptyResultsView
-                } else if viewModel.searchResults.isEmpty {
-                    searchHistoryView
-                } else {
-                    resultsList
+            ZStack(alignment: .bottom) {
+                VStack(spacing: 0) {
+                    if viewModel.isLoading {
+                        loadingView
+                    } else if viewModel.searchResults.isEmpty && !viewModel.searchText.isEmpty {
+                        emptyResultsView
+                    } else if viewModel.searchResults.isEmpty {
+                        searchHistoryView
+                    } else {
+                        resultsList
+                    }
                 }
+                .background(Color.appMintCream)
+                .padding(.bottom, 70) // Make room for search bar
+                
+                // Bottom Search Bar
+                VStack(spacing: 0) {
+                    Divider()
+                    searchBar
+                }
+                .background(Color.white)
             }
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.inline)
@@ -28,20 +37,24 @@ struct SearchView: View {
                         appState.shouldShowOnboarding = true
                     }) {
                         Image(systemName: "questionmark.circle")
+                            .foregroundColor(Color.appSmokyBlack)
                     }
                 }
             }
         }
+        .background(Color.appMintCream)
     }
     
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
+                .foregroundColor(Color.appSmokyBlack.opacity(0.6))
             
             TextField("Search...", text: $viewModel.searchText)
                 .textFieldStyle(.plain)
+                .font(.interRegular(size: 16))
                 .focused($isSearchFieldFocused)
+                .foregroundColor(Color.appSmokyBlack)
                 .onSubmit {
                     Task {
                         await viewModel.performSearch()
@@ -54,38 +67,45 @@ struct SearchView: View {
                     isSearchFieldFocused = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color.appSmokyBlack.opacity(0.6))
                 }
             }
         }
-        .padding(8)
-        .background(Color(.systemGray6))
+        .padding(12)
+        .background(Color.appPlatinum)
         .cornerRadius(10)
-        .padding()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
     
     private var loadingView: some View {
         VStack {
             ProgressView()
                 .scaleEffect(1.5)
+                .tint(Color.appSandyBrown)
             Text("Searching...")
-                .foregroundColor(.secondary)
+                .font(.interRegular(size: 16))
+                .foregroundColor(Color.appSmokyBlack.opacity(0.7))
                 .padding(.top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.appMintCream)
     }
     
     private var emptyResultsView: some View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 50))
-                .foregroundColor(.secondary)
+                .foregroundColor(Color.appSandyBrown)
             Text("No results found")
-                .font(.headline)
+                .font(.interBold(size: 18))
+                .foregroundColor(Color.appSmokyBlack)
             Text("Try different keywords")
-                .foregroundColor(.secondary)
+                .font(.interRegular(size: 16))
+                .foregroundColor(Color.appSmokyBlack.opacity(0.7))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.appMintCream)
     }
     
     private var searchHistoryView: some View {
@@ -98,14 +118,18 @@ struct SearchView: View {
                     }) {
                         HStack {
                             Image(systemName: "clock")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Color.appSandyBrown)
                             Text(query)
+                                .font(.interRegular(size: 16))
+                                .foregroundColor(Color.appSmokyBlack)
                             Spacer()
                         }
                     }
                 }
             }
+            .listRowBackground(Color.white)
         }
+        .background(Color.appMintCream)
     }
     
     private var resultsList: some View {
@@ -113,15 +137,18 @@ struct SearchView: View {
             NavigationLink(destination: ResultDetailView(result: result)) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(result.title)
-                        .font(.headline)
+                        .font(.interBold(size: 17))
+                        .foregroundColor(Color.appSmokyBlack)
                     Text(result.description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.interRegular(size: 15))
+                        .foregroundColor(Color.appSmokyBlack.opacity(0.7))
                         .lineLimit(2)
                 }
                 .padding(.vertical, 4)
             }
+            .listRowBackground(Color.white)
         }
+        .background(Color.appMintCream)
     }
 }
 

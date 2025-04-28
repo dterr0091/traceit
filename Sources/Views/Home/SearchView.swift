@@ -37,7 +37,7 @@ struct SearchView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
             
-            TextField("Search...", text: $viewModel.searchText)
+            TextField("Search for a source", text: $viewModel.searchText)
                 .textFieldStyle(.plain)
                 .focused($isSearchFieldFocused)
                 .onSubmit {

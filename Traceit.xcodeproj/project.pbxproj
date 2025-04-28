@@ -56,9 +56,22 @@
 		38F1063B2DBFEB9C004E6EA1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		38F106CC2DC03DFF004E6EA1 /* Exceptions for "Traceit" folder in "Traceit" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 38F105F72DBFEAD0004E6EA1 /* Traceit */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		38F105FA2DBFEAD0004E6EA1 /* Traceit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				38F106CC2DC03DFF004E6EA1 /* Exceptions for "Traceit" folder in "Traceit" target */,
+			);
 			path = Traceit;
 			sourceTree = "<group>";
 		};
