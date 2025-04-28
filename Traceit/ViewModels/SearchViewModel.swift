@@ -68,11 +68,34 @@ final class SearchViewModel: ObservableObject {
         hasSearched = false
     }
     
+    func removeSearchHistoryItem(at index: Int) {
+        guard index >= 0, index < searchHistory.count else { return }
+        searchHistory.remove(at: index)
+        saveSearchHistory()
+    }
+    
+    func removeSearchHistory(query: String) {
+        searchHistory.removeAll { $0 == query }
+        saveSearchHistory()
+    }
+    
+    func clearAllSearchHistory() {
+        searchHistory.removeAll()
+        saveSearchHistory()
+    }
+    
     private func addToSearchHistory(_ query: String) {
+        // Remove the query if it already exists to avoid duplicates
+        searchHistory.removeAll { $0 == query }
+        
+        // Add the query at the beginning of the array
         searchHistory.insert(query, at: 0)
+        
+        // Keep only the maximum number of history items
         if searchHistory.count > maxHistoryItems {
             searchHistory.removeLast()
         }
+        
         saveSearchHistory()
     }
     

@@ -174,25 +174,64 @@ struct SearchView: View {
     }
     
     private var searchHistoryView: some View {
-        List {
-            Section("Recent Searches") {
-                ForEach(viewModel.searchHistory, id: \.self) { query in
-                    Button(action: {
-                        viewModel.searchText = query
-                        isSearchFieldFocused = true
-                    }) {
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(Color.appSandyBrown)
-                            Text(query)
-                                .font(.interRegular(size: 16))
-                                .foregroundColor(Color.appSmokyBlack)
-                            Spacer()
+        VStack {
+            if !viewModel.searchHistory.isEmpty {
+                List {
+                    Section("Recent Searches") {
+                        ForEach(viewModel.searchHistory, id: \.self) { query in
+                            Button(action: {
+                                viewModel.searchText = query
+                                isSearchFieldFocused = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "clock")
+                                        .foregroundColor(Color.appSandyBrown)
+                                    Text(query)
+                                        .font(.interRegular(size: 16))
+                                        .foregroundColor(Color.appSmokyBlack)
+                                    Spacer()
+                                }
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    viewModel.removeSearchHistory(query: query)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                         }
                     }
+                    .listRowBackground(Color.white)
                 }
+                
+                Button(action: {
+                    viewModel.clearAllSearchHistory()
+                }) {
+                    Text("Clear All Searches")
+                        .font(.interMedium(size: 16))
+                        .foregroundColor(Color.red)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                        .padding(.bottom)
+                }
+            } else {
+                VStack(spacing: 20) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 50))
+                        .foregroundColor(Color.appSmokyBlack.opacity(0.3))
+                    Text("No Search History")
+                        .font(.interBold(size: 18))
+                        .foregroundColor(Color.appSmokyBlack)
+                    Text("Your recent searches will appear here")
+                        .font(.interRegular(size: 16))
+                        .foregroundColor(Color.appSmokyBlack.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .listRowBackground(Color.white)
         }
         .background(Color.appMintCream)
     }
