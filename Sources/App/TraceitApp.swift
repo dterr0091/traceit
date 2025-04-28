@@ -1,10 +1,3 @@
-//
-//  TraceitApp.swift
-//  Traceit
-//
-//  Created by Dominick Terry on 4/28/25.
-//
-
 import SwiftUI
 
 @main
@@ -13,13 +6,11 @@ struct TraceitApp: App {
     
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                Group {
-                    if appState.shouldShowOnboarding {
-                        OnboardingView()
-                    } else {
-                        SearchView()
-                    }
+            Group {
+                if appState.shouldShowOnboarding {
+                    OnboardingView()
+                } else {
+                    SearchView()
                 }
             }
             .environmentObject(appState)
@@ -37,4 +28,4 @@ class AppState: ObservableObject {
     init() {
         self.shouldShowOnboarding = !UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
     }
-}
+} 

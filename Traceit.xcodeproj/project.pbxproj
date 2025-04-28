@@ -19,7 +19,6 @@
 		38F1064D2DBFEB9C004E6EA1 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F106332DBFEB9C004E6EA1 /* CoreDataStack.swift */; };
 		38F1064E2DBFEB9C004E6EA1 /* HomeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F106302DBFEB9C004E6EA1 /* HomeModel.swift */; };
 		38F1064F2DBFEB9C004E6EA1 /* KeychainWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F106342DBFEB9C004E6EA1 /* KeychainWrapper.swift */; };
-		38F106A42DBFFD29004E6EA1 /* AuthenticationViewModelTests 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F106A32DBFFD29004E6EA1 /* AuthenticationViewModelTests 2.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,7 +54,6 @@
 		38F106372DBFEB9C004E6EA1 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		38F106392DBFEB9C004E6EA1 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		38F1063B2DBFEB9C004E6EA1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		38F106A32DBFFD29004E6EA1 /* AuthenticationViewModelTests 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthenticationViewModelTests 2.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -272,7 +270,6 @@
 		38F106422DBFEB9C004E6EA1 /* UnitTests */ = {
 			isa = PBXGroup;
 			children = (
-				38F106A32DBFFD29004E6EA1 /* AuthenticationViewModelTests 2.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -442,7 +439,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				38F1064A2DBFEB9C004E6EA1 /* Environment.swift in Sources */,
-				38F106A42DBFFD29004E6EA1 /* AuthenticationViewModelTests 2.swift in Sources */,
 				38F1064B2DBFEB9C004E6EA1 /* HomeViewModel.swift in Sources */,
 				38F1064C2DBFEB9C004E6EA1 /* HomeView.swift in Sources */,
 				38F1064D2DBFEB9C004E6EA1 /* CoreDataStack.swift in Sources */,

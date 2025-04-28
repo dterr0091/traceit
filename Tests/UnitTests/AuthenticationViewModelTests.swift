@@ -1,52 +1,64 @@
 import XCTest
 @testable import Traceit
 
-final class MockAuthService: AuthenticationServiceProtocol {
-    var currentUser: User? = nil
-    var shouldSucceed = true
-
-    func signInWithApple(completion: @escaping (Result<User, Error>) -> Void) {
-        if shouldSucceed {
-            let user = User(id: "123", email: "test@example.com", fullName: "Test User")
-            currentUser = user
-            completion(.success(user))
-        } else {
-            completion(.failure(NSError(domain: "Test", code: 1)))
-        }
+final class AuthenticationViewModelTests: XCTestCase {
+    var sut: AuthenticationViewModel!
+    var mockAuthService: MockAuthenticationService!
+    
+    override func setUp() {
+        super.setUp()
+        mockAuthService = MockAuthenticationService()
+        sut = AuthenticationViewModel(authenticationService: mockAuthService)
     }
-
-    func signOut() {
-        currentUser = nil
+    
+    override func tearDown() {
+        sut = nil
+        mockAuthService = nil
+        super.tearDown()
+    }
+    
+    func testSignInWithApple_Success() async throws {
+        // Given
+        mockAuthService.signInResult = .success(User(id: "123", email: "test@example.com"))
+        
+        // When
+        let result = try await sut.signInWithApple()
+        
+        // Then
+        XCTAssertTrue(result)
+        XCTAssertTrue(sut.isAuthenticated)
+    }
+    
+    func testSignInWithApple_Failure() async throws {
+        // Given
+        mockAuthService.signInResult = .failure(AuthenticationError.invalidCredentials)
+        
+        // When
+        let result = try await sut.signInWithApple()
+        
+        // Then
+        XCTAssertFalse(result)
+        XCTAssertFalse(sut.isAuthenticated)
     }
 }
 
-final class AuthenticationViewModelTests: XCTestCase {
-    func testSignInSuccess() {
-        let mockService = MockAuthService()
-        let viewModel = AuthenticationViewModel(authService: mockService)
-
-        let expectation = self.expectation(description: "Sign in completes")
-        viewModel.signIn()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            XCTAssertTrue(viewModel.isAuthenticated)
-            XCTAssertNotNil(viewModel.user)
-            expectation.fulfill()
+// MARK: - Mock Authentication Service
+class MockAuthenticationService: AuthenticationServiceProtocol {
+    var signInResult: Result<User, Error> = .failure(AuthenticationError.unknown)
+    
+    func signInWithApple() async throws -> User {
+        switch signInResult {
+        case .success(let user):
+            return user
+        case .failure(let error):
+            throw error
         }
-        waitForExpectations(timeout: 1)
     }
+}
 
-    func testSignInFailure() {
-        let mockService = MockAuthService()
-        mockService.shouldSucceed = false
-        let viewModel = AuthenticationViewModel(authService: mockService)
-
-        let expectation = self.expectation(description: "Sign in fails")
-        viewModel.signIn()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            XCTAssertFalse(viewModel.isAuthenticated)
-            XCTAssertNotNil(viewModel.error)
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 1)
-    }
+// MARK: - Authentication Errors
+enum AuthenticationError: Error {
+    case invalidCredentials
+    case networkError
+    case unknown
 } 
