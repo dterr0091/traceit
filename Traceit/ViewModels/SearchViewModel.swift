@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 @MainActor
 final class SearchViewModel: ObservableObject {
@@ -7,11 +8,32 @@ final class SearchViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: Error?
     @Published var searchHistory: [String] = []
+    @Published var hasSearched = false
+    @Published var photoSelection: PhotosPickerItem? {
+        didSet {
+            processPhotoSelection()
+        }
+    }
+    @Published var selectedImage: UIImage?
     
     private let maxHistoryItems = 10
     
     init() {
         loadSearchHistory()
+    }
+    
+    private func processPhotoSelection() {
+        Task {
+            if let photoSelection = photoSelection,
+               let data = try? await photoSelection.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                await MainActor.run {
+                    self.selectedImage = image
+                    print("Photo selected")
+                    // Here you would process the image for search
+                }
+            }
+        }
     }
     
     func performSearch() async {
@@ -31,6 +53,7 @@ final class SearchViewModel: ObservableObject {
             ]
             
             addToSearchHistory(searchText)
+            hasSearched = true
         } catch {
             self.error = error
         }
@@ -42,6 +65,7 @@ final class SearchViewModel: ObservableObject {
         searchText = ""
         searchResults = []
         error = nil
+        hasSearched = false
     }
     
     private func addToSearchHistory(_ query: String) {

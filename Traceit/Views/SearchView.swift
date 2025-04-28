@@ -1,9 +1,17 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @FocusState private var isSearchFieldFocused: Bool
     @EnvironmentObject private var appState: AppState
+    @State private var showUploadOptions = false
+    @State private var showImagePicker = false
+    @State private var showDocumentPicker = false
+    @State private var showCamera = false
+    @State private var selectedImage: UIImage?
+    @State private var selectedFileURL: URL?
     
     var body: some View {
         NavigationView {
@@ -11,21 +19,60 @@ struct SearchView: View {
                 VStack(spacing: 0) {
                     if viewModel.isLoading {
                         loadingView
-                    } else if viewModel.searchResults.isEmpty && !viewModel.searchText.isEmpty {
+                    } else if viewModel.hasSearched && viewModel.searchResults.isEmpty && !viewModel.searchText.isEmpty {
                         emptyResultsView
-                    } else if viewModel.searchResults.isEmpty {
-                        searchHistoryView
-                    } else {
+                    } else if !viewModel.searchResults.isEmpty {
                         resultsList
+                    } else {
+                        searchHistoryView
                     }
                 }
                 .background(Color.appMintCream)
-                .padding(.bottom, 70) // Make room for search bar
+                .padding(.bottom, 120) // Make room for search bar and upload button
                 
-                // Bottom Search Bar
+                // Bottom Search Bar and Upload Button
                 VStack(spacing: 0) {
                     Divider()
                     searchBar
+                    
+                    HStack {
+                        Spacer()
+                        
+                        Button(action: {
+                            showUploadOptions.toggle()
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.up.doc.fill")
+                                Text("Upload")
+                                    .font(.interMedium(size: 14))
+                            }
+                            .foregroundColor(Color.appSmokyBlack)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.appSmokyBlack, lineWidth: 1)
+                            )
+                        }
+                        .padding(.top, 8)
+                        .padding(.horizontal, 16)
+                        .confirmationDialog("Choose upload option", isPresented: $showUploadOptions, titleVisibility: .visible) {
+                            Button("Take Photo") {
+                                showCamera = true
+                            }
+                            
+                            Button("Choose from Photos") {
+                                showImagePicker = true
+                            }
+                            
+                            Button("Browse Files") {
+                                showDocumentPicker = true
+                            }
+                            
+                            Button("Cancel", role: .cancel) {}
+                        }
+                    }
+                    .padding(.bottom, 8)
                 }
                 .background(Color.white)
             }
@@ -41,15 +88,33 @@ struct SearchView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showImagePicker) {
+                PhotosPicker(selection: $viewModel.photoSelection, matching: .images) {
+                    Text("Select Photo")
+                }
+            }
+            .sheet(isPresented: $showDocumentPicker) {
+                DocumentPicker { url in
+                    selectedFileURL = url
+                    // Handle the selected file
+                    print("Selected file: \(url.lastPathComponent)")
+                }
+            }
+            .sheet(isPresented: $showCamera) {
+                CameraView { image in
+                    if let image = image {
+                        selectedImage = image
+                        // Handle the captured image
+                        print("Captured image")
+                    }
+                }
+            }
         }
         .background(Color.appMintCream)
     }
     
     private var searchBar: some View {
         HStack {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(Color.appSmokyBlack.opacity(0.6))
-            
             TextField("Search...", text: $viewModel.searchText)
                 .textFieldStyle(.plain)
                 .font(.interRegular(size: 16))
@@ -72,7 +137,7 @@ struct SearchView: View {
             }
         }
         .padding(12)
-        .background(Color.appPlatinum)
+        .background(Color.white)
         .cornerRadius(10)
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
