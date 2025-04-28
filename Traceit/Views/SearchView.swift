@@ -32,7 +32,6 @@ struct SearchView: View {
                 
                 // Bottom Search Bar and Upload Button
                 VStack(spacing: 0) {
-                    Divider()
                     searchBar
                     
                     HStack {
@@ -203,6 +202,8 @@ struct SearchView: View {
                     }
                     .listRowBackground(Color.white)
                 }
+                .listStyle(.plain)
+                .environment(\.defaultMinListRowHeight, 0)
                 
                 Button(action: {
                     viewModel.clearAllSearchHistory()
@@ -252,6 +253,7 @@ struct SearchView: View {
             }
             .listRowBackground(Color.white)
         }
+        .listStyle(.plain)
         .background(Color.appMintCream)
     }
 }

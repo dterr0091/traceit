@@ -38,7 +38,6 @@ struct ResultDetailView: View {
             
             // Bottom Search Bar
             VStack(spacing: 0) {
-                Divider()
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(Color.appSmokyBlack.opacity(0.6))
