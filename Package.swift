@@ -29,6 +29,9 @@ let package = Package(
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
                 .product(name: "SwiftUIIntrospect", package: "swiftui-introspect")
+            ],
+            resources: [
+                .process("../Resources")
             ]
         ),
         .testTarget(

@@ -4,6 +4,22 @@ import SwiftUI
 struct TraceitApp: App {
     @StateObject private var appState = AppState()
     
+    init() {
+        // Set global appearance
+        let coloredAppearance = UINavigationBarAppearance()
+        coloredAppearance.configureWithOpaqueBackground()
+        coloredAppearance.backgroundColor = UIColor(Color.appMintCream)
+        coloredAppearance.titleTextAttributes = [.foregroundColor: UIColor(Color.appSmokyBlack)]
+        coloredAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor(Color.appSmokyBlack)]
+        
+        UINavigationBar.appearance().standardAppearance = coloredAppearance
+        UINavigationBar.appearance().compactAppearance = coloredAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = coloredAppearance
+        
+        // Set list appearance
+        UITableView.appearance().backgroundColor = UIColor(Color.appMintCream)
+    }
+    
     var body: some Scene {
         WindowGroup {
             NavigationView {
@@ -17,6 +33,8 @@ struct TraceitApp: App {
             }
             .navigationViewStyle(StackNavigationViewStyle())
             .environmentObject(appState)
+            .preferredColorScheme(.light)
+            .background(Color.appMintCream)
         }
     }
 }

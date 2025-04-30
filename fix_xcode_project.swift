@@ -1,3 +1,14 @@
+#!/usr/bin/swift
+
+import Foundation
+
+// This script will create a new .xcodeproj file that references the Sources directory
+// and removes references to the duplicate Traceit directory
+
+print("Fixing Xcode project references...")
+
+// Create a new Xcode project file with the correct references
+let projectContent = """
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
@@ -326,7 +337,7 @@
 				CODE_SIGN_ENTITLEMENTS = Resources/Traceit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "Resources/Preview\ Content";
+				DEVELOPMENT_ASSET_PATHS = "Resources/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -357,7 +368,7 @@
 				CODE_SIGN_ENTITLEMENTS = Resources/Traceit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "Resources/Preview\ Content";
+				DEVELOPMENT_ASSET_PATHS = "Resources/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -405,3 +416,25 @@
 	};
 	rootObject = 1A6000001 /* Project object */;
 }
+"""
+
+// Write to a file
+let projectFile = "Traceit.xcodeproj/project.pbxproj"
+do {
+    try projectContent.write(toFile: projectFile, atomically: true, encoding: .utf8)
+    print("✅ Project file updated successfully")
+} catch {
+    print("❌ Failed to write project file: \(error)")
+    exit(1)
+}
+
+// Create a directory for preview content
+do {
+    try FileManager.default.createDirectory(atPath: "Resources/Preview Content", withIntermediateDirectories: true)
+    print("✅ Preview Content directory created")
+} catch {
+    print("❌ Failed to create Preview Content directory: \(error)")
+}
+
+print("✅ Xcode project structure fixed")
+print("✅ Now use 'git add' to add these changes and commit them") 
