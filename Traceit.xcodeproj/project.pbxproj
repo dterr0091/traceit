@@ -18,7 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1A0000001 /* traceit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = traceit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0000001 /* Traceit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Traceit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A2000001 /* TraceitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraceitApp.swift; sourceTree = "<group>"; };
 		1A2000002 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		1A2000003 /* ResultDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultDetailView.swift; sourceTree = "<group>"; };
@@ -52,7 +52,7 @@
 		1A4000002 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A0000001 /* traceit.app */,
+				1A0000001 /* Traceit.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,9 +122,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1A5000001 /* traceit */ = {
+		1A5000001 /* Traceit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1A5000002 /* Build configuration list for PBXNativeTarget "traceit" */;
+			buildConfigurationList = 1A5000002 /* Build configuration list for PBXNativeTarget "Traceit" */;
 			buildPhases = (
 				1A5000003 /* Sources */,
 				1A3000001 /* Frameworks */,
@@ -134,9 +134,9 @@
 			);
 			dependencies = (
 			);
-			name = traceit;
+			name = Traceit;
 			productName = Traceit;
-			productReference = 1A0000001 /* traceit.app */;
+			productReference = 1A0000001 /* Traceit.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -167,7 +167,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1A5000001 /* traceit */,
+				1A5000001 /* Traceit */,
 			);
 		};
 /* End PBXProject section */
@@ -383,7 +383,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1A5000002 /* Build configuration list for PBXNativeTarget "traceit" */ = {
+		1A5000002 /* Build configuration list for PBXNativeTarget "Traceit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A7000003 /* Debug */,

@@ -9,9 +9,9 @@ let package = Package(
         .iOS(.v16)
     ],
     products: [
-        .library(
-            name: "traceit",
-            targets: ["traceit"]),
+        .executable(
+            name: "Traceit",
+            targets: ["Traceit"])
     ],
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.8.0"),
@@ -20,8 +20,8 @@ let package = Package(
         .package(url: "https://github.com/siteline/swiftui-introspect.git", from: "1.0.0")
     ],
     targets: [
-        .target(
-            name: "traceit",
+        .executableTarget(
+            name: "Traceit",
             dependencies: [
                 "Alamofire",
                 "Kingfisher",
@@ -30,13 +30,14 @@ let package = Package(
                 .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
                 .product(name: "SwiftUIIntrospect", package: "swiftui-introspect")
             ],
+            path: "Sources",
             resources: [
                 .process("../Resources")
             ]
         ),
         .testTarget(
             name: "traceitTests",
-            dependencies: ["traceit"]
+            dependencies: ["Traceit"]
         ),
     ]
 )

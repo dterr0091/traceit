@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict/>
+    </dict>
+    <key>UIAppFonts</key>
+    <array>
+        <string>Inter.ttf</string>
+        <string>Inter-Bold.ttf</string>
+        <string>Inter-Medium.ttf</string>
+    </array>
+    <key>NSCameraUsageDescription</key>
+    <string>We need access to your camera to take photos for searching.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your photo library to select photos for searching.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need access to your microphone for video recording if needed.</string>
+</dict>
+</plist> 
