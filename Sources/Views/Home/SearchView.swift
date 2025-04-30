@@ -1,424 +1,382 @@
 import SwiftUI
+import MapKit
 
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @FocusState private var isSearchFieldFocused: Bool
     @EnvironmentObject private var appState: AppState
-    @State private var searchDrawerHeight: CGFloat = 60
-    @State private var textEditorHeight: CGFloat = 40
-    @State private var keyboardHeight: CGFloat = 0
+    @State private var searchText = ""
+    
+    // Drawer states
+    @State private var drawerHeight: CGFloat = 100
+    @State private var drawerOffset: CGFloat = 0
+    @State private var lastDragValue: CGFloat = 0
+    @State private var hasResults = false
+    
+    // Map region
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    )
+    
+    // Screen metrics
+    private let minDrawerHeight: CGFloat = 100
+    private let maxDrawerHeight: CGFloat = UIScreen.main.bounds.height * 0.9
+    private let screenHeight = UIScreen.main.bounds.height
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Main content
-            VStack(spacing: 0) {
-                if viewModel.isLoading {
-                    loadingView
-                } else if viewModel.searchResults.isEmpty && !viewModel.searchText.isEmpty {
-                    emptyResultsView
-                } else if viewModel.searchResults.isEmpty {
-                    searchHistoryView
-                } else {
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Original Source section
-                            if let firstResult = viewModel.searchResults.first {
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Text("Original Source")
-                                        .font(.headline)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                    
-                                    HStack(alignment: .top, spacing: 12) {
-                                        // Image placeholder
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.2))
-                                            .frame(width: 80, height: 80)
-                                            .overlay(
-                                                Image(systemName: "photo")
-                                                    .foregroundColor(.gray)
-                                            )
-                                        
-                                        VStack(alignment: .leading, spacing: 6) {
-                                            Text(firstResult.source)
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-                                            
-                                            Text(firstResult.title)
-                                                .font(.headline)
-                                            
-                                            Text(firstResult.description)
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-                                            
-                                            HStack(spacing: 4) {
-                                                Text(firstResult.author)
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                                
-                                                Text("•")
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                                
-                                                Text(firstResult.publishedDate, formatter: dateFormatter)
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            
-                                            Text(firstResult.url.absoluteString)
-                                                .font(.caption)
-                                                .foregroundColor(.blue)
-                                        }
-                                    }
-                                    .padding(16)
-                                    .background(Color.white)
-                                    .cornerRadius(8)
-                                    .padding(.horizontal)
-                                }
-                            }
-                            
-                            // Results list
-                            resultsList
-                            
-                            // Search field indicator at bottom
-                            HStack {
-                                Text("Test")
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 12)
-                                
-                                Spacer()
-                                
-                                Button(action: {}) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .background(Color.white)
-                            .cornerRadius(20)
-                            .shadow(radius: 1)
-                            .padding(.horizontal)
-                            
-                            // Upload button
-                            HStack {
-                                Spacer()
-                                
-                                Button(action: {}) {
-                                    HStack {
-                                        Image(systemName: "doc.fill")
-                                        Text("Upload")
-                                    }
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.black, lineWidth: 1)
-                                    )
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.bottom, 16)
-                        }
-                        .padding(.bottom, searchDrawerHeight)
-                    }
-                }
-            }
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        appState.shouldShowOnboarding = true
-                    }) {
-                        Image(systemName: "questionmark.circle")
-                    }
-                }
-            }
+        ZStack(alignment: .top) {
+            // Map View as the background
+            Map(coordinateRegion: $region)
+                .edgesIgnoringSafeArea(.all)
             
-            // Search drawer
-            searchDrawer
-        }
-        .onAppear {
-            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
-                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                    keyboardHeight = keyboardFrame.height
-                }
-            }
-            
-            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
-                keyboardHeight = 0
-            }
-        }
-    }
-    
-    private var searchDrawer: some View {
-        VStack(spacing: 0) {
-            // Drawer handle
-            RoundedRectangle(cornerRadius: 2.5)
-                .fill(Color.gray.opacity(0.5))
-                .frame(width: 40, height: 5)
-                .padding(.top, 8)
-            
-            // Search content
+            // Search bar at the top
             VStack {
                 HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    
-                    TextEditor(text: $viewModel.searchText)
-                        .frame(height: max(40, min(120, textEditorHeight)))
-                        .focused($isSearchFieldFocused)
-                        .padding(.vertical, 4)
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear.onAppear {
-                                    textEditorHeight = geo.size.height
-                                }
-                                .onChange(of: viewModel.searchText) { _ in
-                                    textEditorHeight = geo.size.height
-                                    updateDrawerHeight()
-                                }
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        TextField("Try \"Ranch style houses in Phoenix\"", text: $searchText)
+                            .onSubmitLabel(.search)
+                            .onSubmit {
+                                performSearch()
                             }
-                        )
-                        .scrollContentBackground(.hidden)
+                    }
+                    .padding(8)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(radius: 2)
                     
-                    if !viewModel.searchText.isEmpty {
-                        Button(action: {
-                            viewModel.clearSearch()
-                            isSearchFieldFocused = false
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }
-                
-                Button("Search") {
-                    Task {
-                        await viewModel.performSearch()
-                        isSearchFieldFocused = false
-                    }
-                }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-                .padding(.top, 8)
-            }
-            .padding()
-        }
-        .frame(height: searchDrawerHeight)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.systemGray6))
-                .shadow(radius: 3)
-        )
-        .gesture(
-            DragGesture()
-                .onChanged { value in
-                    let newHeight = searchDrawerHeight - value.translation.height
-                    searchDrawerHeight = min(max(60, newHeight), UIScreen.main.bounds.height / 2)
-                }
-        )
-    }
-    
-    private func updateDrawerHeight() {
-        withAnimation(.spring()) {
-            searchDrawerHeight = max(60, min(textEditorHeight + 100, UIScreen.main.bounds.height / 2))
-        }
-    }
-    
-    private var loadingView: some View {
-        VStack {
-            ProgressView()
-                .scaleEffect(1.5)
-            Text("Searching...")
-                .foregroundColor(.secondary)
-                .padding(.top)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    private var emptyResultsView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 50))
-                .foregroundColor(.secondary)
-            Text("No results found")
-                .font(.headline)
-            Text("Try different keywords")
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    private var searchHistoryView: some View {
-        List {
-            Section("Recent Searches") {
-                ForEach(viewModel.searchHistory, id: \.self) { query in
                     Button(action: {
-                        viewModel.searchText = query
-                        isSearchFieldFocused = true
+                        // Filters action
                     }) {
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(.secondary)
-                            Text(query)
-                            Spacer()
-                        }
+                        Image(systemName: "line.horizontal.3.decrease.circle")
+                            .font(.title2)
+                            .foregroundColor(.blue)
                     }
                 }
-            }
-        }
-    }
-    
-    private var resultsList: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Results header
-            HStack {
-                Text("Results")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                .padding()
+                
                 Spacer()
             }
-            .background(Color(.systemGroupedBackground))
             
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(viewModel.searchResults) { result in
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Result item
-                        NavigationLink(destination: ResultDetailView(result: result)) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(result.title)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                
-                                Text(result.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            // Action buttons
+            VStack {
+                Spacer()
+                
+                HStack(spacing: 16) {
+                    Button(action: {}) {
+                        Image(systemName: "square.stack.3d.up")
+                            .font(.title2)
+                            .padding(12)
                             .background(Color.white)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Divider()
-                        
-                        // Comments section
-                        VStack(spacing: 0) {
-                            ForEach(result.comments) { comment in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(comment.title)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                    Text(comment.comment)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text("Helpful")
-                                        .font(.caption)
-                                        .foregroundColor(.blue)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(.systemGray6))
-                            }
-                        }
+                            .cornerRadius(30)
+                            .shadow(radius: 2)
                     }
-                    .background(Color.white)
-                    .cornerRadius(8)
-                    .padding(.bottom, 16)
-                }
-            }
-            .padding(.horizontal)
-        }
-        .background(Color(.systemGroupedBackground))
-    }
-    
-    private struct CommentSectionView: View {
-        let resultId: String
-        @State private var comments: [Comment] = []
-        @State private var newComment: String = ""
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Comments")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                
-                ForEach(comments) { comment in
-                    HStack(alignment: .top) {
-                        Image(systemName: "person.circle.fill")
-                            .foregroundColor(.gray)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(comment.authorName)
-                                .font(.caption)
-                                .fontWeight(.medium)
-                            
-                            Text(comment.text)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 2)
-                }
-                
-                HStack {
-                    TextField("Add a comment...", text: $newComment)
-                        .font(.caption)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
                     
-                    Button(action: addComment) {
-                        Image(systemName: "paperplane.fill")
-                            .foregroundColor(.blue)
-                            .font(.caption)
+                    Button(action: {}) {
+                        Image(systemName: "timer")
+                            .font(.title2)
+                            .padding(12)
+                            .background(Color.white)
+                            .cornerRadius(30)
+                            .shadow(radius: 2)
                     }
-                    .disabled(newComment.isEmpty)
+                    
+                    Button(action: {}) {
+                        Image(systemName: "location")
+                            .font(.title2)
+                            .padding(12)
+                            .background(Color.white)
+                            .cornerRadius(30)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        performSearch()
+                    }) {
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                            Text("Save Search")
+                                .fontWeight(.medium)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(30)
+                        .shadow(radius: 2)
+                    }
                 }
-                .padding(.top, 4)
+                .padding()
+                .padding(.bottom, drawerHeight > minDrawerHeight + 100 ? drawerHeight - minDrawerHeight : 0)
             }
-            .padding(.vertical, 4)
-            .onAppear(perform: loadComments)
+            
+            // Results drawer
+            VStack(spacing: 0) {
+                Spacer()
+                
+                ZStack(alignment: .top) {
+                    // Drawer background with rounded corners
+                    RoundedCorner(radius: 16, corners: [.topLeft, .topRight])
+                        .fill(Color.white)
+                        .shadow(radius: 5)
+                    
+                    VStack(spacing: 0) {
+                        // Drawer handle
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 40, height: 5)
+                            .cornerRadius(2.5)
+                            .padding(.top, 8)
+                        
+                        // Results count
+                        if hasResults {
+                            HStack {
+                                if let sortOption = viewModel.currentSortOption {
+                                    Text("Sort: \(sortOption)")
+                                        .font(.subheadline)
+                                } else {
+                                    Text("\(viewModel.searchResults.count) results")
+                                        .font(.headline)
+                                        .padding(.vertical, 8)
+                                }
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    // Save search action
+                                }) {
+                                    HStack {
+                                        Image(systemName: "magnifyingglass")
+                                        Text("Save Search")
+                                    }
+                                    .foregroundColor(.blue)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.bottom, 8)
+                        }
+                        
+                        // Results list
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(viewModel.searchResults) { result in
+                                    ResultCard(result: result)
+                                }
+                                
+                                // Add extra padding at the bottom
+                                Color.clear.frame(height: 50)
+                            }
+                            .padding(.horizontal)
+                        }
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    // Detect drag direction for better UX
+                                    let translation = value.translation.height
+                                    let dragDown = translation > 0
+                                    
+                                    // Calculate new height based on drag
+                                    let newHeight = drawerHeight - translation + lastDragValue
+                                    
+                                    // Apply constraints to the drawer height
+                                    if newHeight >= minDrawerHeight && newHeight <= maxDrawerHeight {
+                                        drawerHeight = newHeight
+                                    }
+                                    
+                                    // If user is at the top of the list and drags down, start collapsing
+                                    if dragDown && drawerOffset == 0 {
+                                        drawerOffset = translation
+                                    }
+                                }
+                                .onEnded { value in
+                                    lastDragValue = 0
+                                    drawerOffset = 0
+                                    
+                                    // Snap to predefined positions
+                                    let midPoint = (maxDrawerHeight + minDrawerHeight) / 2
+                                    
+                                    if drawerHeight < midPoint {
+                                        // Snap to minimized
+                                        withAnimation(.spring()) {
+                                            drawerHeight = minDrawerHeight
+                                        }
+                                    } else {
+                                        // Snap to expanded
+                                        withAnimation(.spring()) {
+                                            drawerHeight = maxDrawerHeight
+                                        }
+                                    }
+                                }
+                        )
+                    }
+                }
+                .frame(height: drawerHeight)
+                .offset(y: drawerOffset)
+            }
+            .ignoresSafeArea(edges: .bottom)
         }
-        
-        private func loadComments() {
-            // Mock data for now, replace with real data loading
-            comments = [
-                Comment(id: "1", resultId: resultId, authorId: "user1", authorName: "User 1", text: "Great result!"),
-                Comment(id: "2", resultId: resultId, authorId: "user2", authorName: "User 2", text: "This is helpful.")
-            ]
-        }
-        
-        private func addComment() {
-            guard !newComment.isEmpty else { return }
-            
-            let comment = Comment(
-                id: UUID().uuidString,
-                resultId: resultId,
-                authorId: "currentUser",
-                authorName: "You",
-                text: newComment
-            )
-            
-            comments.append(comment)
-            newComment = ""
-            
-            // TODO: Save comment to backend
+        .navigationBarHidden(true)
+        .onChange(of: viewModel.searchResults) { newResults in
+            withAnimation {
+                hasResults = !newResults.isEmpty
+                if hasResults && drawerHeight == minDrawerHeight {
+                    drawerHeight = screenHeight * 0.4 // Show partial results initially
+                }
+            }
         }
     }
     
-    // Date formatter for displaying published date
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
-        return formatter
+    private func performSearch() {
+        guard !searchText.isEmpty else { return }
+        
+        Task {
+            await viewModel.performSearch(query: searchText)
+        }
     }
+}
+
+// MARK: - Helper Views
+
+struct ResultCard: View {
+    let result: SearchResult
+    @State private var isFavorite = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Image with days on market label
+            ZStack(alignment: .topLeading) {
+                // Property image
+                ZStack(alignment: .bottomTrailing) {
+                    Rectangle() // Placeholder for the property image
+                        .fill(Color.gray.opacity(0.3))
+                        .aspectRatio(1.6, contentMode: .fit)
+                        .cornerRadius(8)
+                    
+                    // Image pagination dots
+                    HStack(spacing: 4) {
+                        ForEach(0..<5) { i in
+                            Circle()
+                                .fill(i == 0 ? Color.white : Color.white.opacity(0.5))
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                    .padding(8)
+                }
+                
+                // Days on market badge
+                Text("1 day on Zillow")
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white)
+                    .cornerRadius(4)
+                    .padding(8)
+                
+                // Favorite button
+                VStack {
+                    HStack {
+                        Spacer()
+                        
+                        Button(action: {
+                            isFavorite.toggle()
+                        }) {
+                            Image(systemName: isFavorite ? "heart.fill" : "heart")
+                                .foregroundColor(isFavorite ? .red : .white)
+                                .padding(8)
+                                .background(Color.white.opacity(0.6))
+                                .clipShape(Circle())
+                        }
+                    }
+                    .padding(8)
+                    
+                    Spacer()
+                }
+            }
+            
+            // Property details
+            VStack(alignment: .leading, spacing: 4) {
+                // Price
+                Text("$\(Int(result.price).formattedWithSeparator)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                // Property specs
+                HStack {
+                    Text("\(result.bedrooms) bds")
+                    Text("•")
+                    Text("\(result.bathrooms) ba")
+                    Text("•")
+                    Text("\(Int(result.squareFeet).formattedWithSeparator) sqft")
+                    
+                    if !result.propertyType.isEmpty {
+                        Text("•")
+                        Text(result.propertyType)
+                    }
+                }
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                
+                // Address
+                Text(result.address)
+                    .font(.subheadline)
+                
+                // Real estate agency
+                Text(result.agency.uppercased())
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .padding(.top, 2)
+            }
+            .padding(.vertical, 8)
+            
+            // More options button
+            HStack {
+                Spacer()
+                
+                Button(action: {}) {
+                    Image(systemName: "ellipsis")
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 3)
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+// MARK: - Extensions
+
+extension Int {
+    var formattedWithSeparator: String {
+        return Formatter.withSeparator.string(for: self) ?? ""
+    }
+}
+
+extension Formatter {
+    static let withSeparator: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter
+    }()
 }
 
 #Preview {

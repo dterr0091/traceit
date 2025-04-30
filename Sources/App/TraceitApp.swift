@@ -6,13 +6,16 @@ struct TraceitApp: App {
     
     var body: some Scene {
         WindowGroup {
-            Group {
-                if appState.shouldShowOnboarding {
-                    OnboardingView()
-                } else {
-                    SearchView()
+            NavigationView {
+                Group {
+                    if appState.shouldShowOnboarding {
+                        OnboardingView()
+                    } else {
+                        SearchView()
+                    }
                 }
             }
+            .navigationViewStyle(StackNavigationViewStyle())
             .environmentObject(appState)
         }
     }
