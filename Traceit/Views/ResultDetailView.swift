@@ -5,6 +5,13 @@ struct ResultDetailView: View {
     @State private var searchText = ""
     @FocusState private var isSearchFieldFocused: Bool
     @EnvironmentObject private var appState: AppState
+    @StateObject private var commentViewModel: CommentViewModel
+    
+    init(result: SearchResult) {
+        self.result = result
+        // Use _StateObject to initialize the StateObject properly
+        _commentViewModel = StateObject(wrappedValue: CommentViewModel(resultId: result.id))
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -22,27 +29,33 @@ struct ResultDetailView: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text(result.title)
-                            .font(.interBold(size: 24))
-                            .foregroundColor(Color.appSmokyBlack)
-                        
-                        Text(result.description)
-                            .font(.interRegular(size: 17))
-                            .foregroundColor(Color.appSmokyBlack.opacity(0.7))
-                        
-                        Link(destination: result.url) {
-                            HStack {
-                                Image(systemName: "link")
-                                Text("Visit Website")
-                                    .font(.interMedium(size: 16))
+                        // Result details
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(result.title)
+                                .font(.interBold(size: 24))
+                                .foregroundColor(Color.appSmokyBlack)
+                            
+                            Text(result.description)
+                                .font(.interRegular(size: 17))
+                                .foregroundColor(Color.appSmokyBlack.opacity(0.7))
+                            
+                            Link(destination: result.url) {
+                                HStack {
+                                    Image(systemName: "link")
+                                    Text("Visit Website")
+                                        .font(.interMedium(size: 16))
+                                }
+                                .foregroundColor(Color.appSandyBrown)
                             }
-                            .foregroundColor(Color.appSandyBrown)
                         }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .shadow(color: Color.appSmokyBlack.opacity(0.05), radius: 5, x: 0, y: 2)
+                        
+                        // Comment section
+                        CommentSection(viewModel: commentViewModel)
                     }
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(12)
-                    .shadow(color: Color.appSmokyBlack.opacity(0.05), radius: 5, x: 0, y: 2)
                     .padding()
                 }
                 .background(Color.appMintCream)

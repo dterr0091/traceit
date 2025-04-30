@@ -136,4 +136,63 @@ struct SearchResult: Identifiable {
     var publishDate: Date = Date()
     var author: String = ""
     var label: String? = nil
+}
+
+struct Comment: Identifiable {
+    let id: String
+    let author: String
+    let text: String
+    let timestamp: Date
+    let avatarImage: UIImage?
+}
+
+@MainActor
+class CommentViewModel: ObservableObject {
+    @Published var comments: [Comment] = []
+    @Published var newCommentText: String = ""
+    
+    // In a real app, this would be associated with the current search result
+    private let resultId: String
+    
+    init(resultId: String) {
+        self.resultId = resultId
+        // Load sample comments for demonstration
+        loadSampleComments()
+    }
+    
+    private func loadSampleComments() {
+        comments = [
+            Comment(
+                id: UUID().uuidString,
+                author: "John Doe",
+                text: "This is a very interesting result. I found it really helpful for my research.",
+                timestamp: Date().addingTimeInterval(-3600 * 24), // 1 day ago
+                avatarImage: nil
+            ),
+            Comment(
+                id: UUID().uuidString,
+                author: "Jane Smith",
+                text: "Great resource! Thanks for sharing this information.",
+                timestamp: Date().addingTimeInterval(-3600 * 12), // 12 hours ago
+                avatarImage: nil
+            )
+        ]
+    }
+    
+    func addComment() {
+        guard !newCommentText.isEmpty else { return }
+        
+        let newComment = Comment(
+            id: UUID().uuidString,
+            author: "Current User", // In a real app, this would be the current user's name
+            text: newCommentText,
+            timestamp: Date(),
+            avatarImage: nil
+        )
+        
+        comments.append(newComment)
+        newCommentText = ""
+        
+        // In a real app, you would save the comment to a database
+    }
 } 

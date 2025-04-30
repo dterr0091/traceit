@@ -399,11 +399,12 @@ struct SearchView: View {
 struct DetailViewContainer: View {
     let result: SearchResult
     @Binding var isPresented: Bool
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
         ZStack(alignment: .topLeading) {
             ResultDetailView(result: result)
-                .environmentObject(AppState())
+                .environmentObject(appState)
             
             Button(action: {
                 isPresented = false
