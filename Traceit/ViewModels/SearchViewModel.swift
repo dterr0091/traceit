@@ -48,8 +48,24 @@ final class SearchViewModel: ObservableObject {
             
             // Simulated results
             searchResults = [
-                SearchResult(id: "1", title: "Sample Result 1", description: "Description 1", url: URL(string: "https://example.com")!),
-                SearchResult(id: "2", title: "Sample Result 2", description: "Description 2", url: URL(string: "https://example.com")!)
+                SearchResult(
+                    id: "1", 
+                    title: "Sample Result 1", 
+                    description: "Description 1", 
+                    url: URL(string: "https://example.com")!,
+                    source: "Source 1",
+                    publishDate: Date(),
+                    author: "Author 1"
+                ),
+                SearchResult(
+                    id: "2", 
+                    title: "Sample Result 2", 
+                    description: "Description 2", 
+                    url: URL(string: "https://example.com")!,
+                    source: "Source 2",
+                    publishDate: Date(),
+                    author: "Author 2"
+                )
             ]
             
             addToSearchHistory(searchText)
@@ -115,4 +131,9 @@ struct SearchResult: Identifiable {
     let title: String
     let description: String
     let url: URL
+    var source: String = ""
+    var thumbnailImage: UIImage? = nil
+    var publishDate: Date = Date()
+    var author: String = ""
+    var label: String? = nil
 } 
