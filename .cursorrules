@@ -1,1 +1,41 @@
- 
+ Coding Rules and Instructions
+Test-Driven Development (TDD) with pytest: Always write a failing test before writing implementation code (Red-Green-Refactor). Use pytest and pytest-fixtures for test setup, execution, and teardown.
+KISS (Keep It Simple, Stupid): Favor the simplest solution that meets the requirements.
+DRY (Don't Repeat Yourself): Avoid code duplication. Extract reusable logic into functions or classes.
+Standard Libraries and Tools: Utilize standard Python libraries (like datetime for date/time, requests for HTTP requests, and logging) and external libraries, including BeautifulSoup4 for HTML parsing, to avoid reinventing the wheel. Favor well-maintained and widely-used libraries.
+YAGNI (You Ain't Gonna Need It): Don't implement features or functionality unless they are currently required.
+SOLID Principles & Extensibility: Adhere to SOLID principles, promoting maintainability, testability, and future extension. Consider potential future requirements when designing classes and modules.
+PEP 8 Style Guide: Follow the PEP 8 style guide for Python code.
+Type Hints: Use type hints for all function parameters and return values.
+Docstrings: Write clear and concise docstrings for all classes, functions, and methods, explaining their purpose, parameters, and return values.
+Small Units of Work: Keep functions and classes small, focused, and with a single, well-defined responsibility (combines original 10 & 11, and reinforces SOLID).
+Modularity: Design the system as a collection of independent, modular components that can be easily reused and tested.
+Parameterized Queries: Prevent SQL injection vulnerabilities by always using parameterized queries when interacting with the database.
+JSONB for Flexible Data: Use JSONB for storing flexible or semi-structured data in PostgreSQL.
+Centralized Logging: Use the logging module to log to standard output. Use appropriate log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL) to categorize log messages.
+Centralized Metrics: Track key metrics using a suitable data structure (e.g., a dictionary) and provide a mechanism to display a summary of these metrics.
+Configuration and Containerization: Use a config.py file for application configuration and to load environment variables (from a .env file). Use Dockerfile and docker-compose.yml for containerization.
+Utilize utils.py: Use a utils.py file for utility and helper functions that are not specific to a particular module.
+Test Data: Use fixtures in tests/fixtures for sample data to be used in tests.
+Efficient Code: Write efficient code, avoiding unnecessary computations, loops, or database queries.
+Meaningful Return Values: Ensure that functions return meaningful and predictable values, including appropriate error indicators when necessary.
+Follow Python 3.11+: Use Python 3.11 or a later version.
+Makefile Automation: Use a Makefile for automating tasks such as building, running, testing, and deploying the application.
+Handle Database Errors: Handle potential database errors (e.g., connection errors, query errors) gracefully, providing informative error messages and preventing application crashes.
+Security and Secret Handling: Never store secrets (passwords, API keys) directly in the code. Use environment variables (loaded via .env and accessed through config.py) or a dedicated secrets management solution.
+Prioritize Instructions: Adhere precisely to the provided instructions and specifications. If ambiguity exists, ask clarifying questions before making assumptions.
+Comprehensive Documentation: Provide clear, concise, and up-to-date documentation. This includes docstrings (for classes, functions, and methods), in-line comments where necessary to explain complex logic, and README files to explain the project's purpose, setup, and usage.
+ORM and Database Interactions: Use SQLAlchemy for database interactions and object-relational mapping (ORM). Define database models using SQLAlchemy's declarative base.
+Data Validation with Pydantic: Use PydanticV2 for data validation, schema definition, and settings management.
+Asynchronous Programming (if needed): If the API or application requires asynchronous operations, use asyncio and async/await syntax.
+RESTful API Design: If building a REST API, adhere to RESTful principles (HTTP methods, resource URLs, status codes, JSON).
+API Versioning: Implement a clear API versioning strategy (e.g., /v1/).
+Rate Limiting (If Applicable): Implement rate limiting to prevent abuse.
+Authentication and Authorization (If Applicable): Clearly define authentication and authorization methods.
+Robust Error Handling: Handle exceptions, return informative errors, and log errors with context.
+Dependency Management: Use pip with a requirements.txt file.
+Automated Code Formatting: Use black for automatic code formatting.
+Static Analysis with Linting: Use flake8 or pylint.
+Resource Management with Context Managers: Use context managers (with statement) for resources.
+Favor Immutability: Prefer immutable data structures when appropriate.
+Makefile Structure: Include targets for build, run, test, lint, format, clean, db-up, db-down.
