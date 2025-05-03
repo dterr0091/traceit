@@ -1,6 +1,6 @@
 import Mercury from '@postlight/mercury-parser';
 import { Extractor } from './base';
-import { ExtractedPost } from '../types/ExtractedPost';
+import { ExtractedPost } from '../types';
 
 interface MercuryResult {
   title: string | null;
@@ -17,23 +17,30 @@ export class GenericArticleExtractor extends Extractor {
     return true;
   }
 
-  async extract(url: URL): Promise<ExtractedPost> {
-    this.validateUrl(url);
+  async isEligible(url: string): Promise<boolean> {
+    // Generic extractor is always eligible as a fallback
+    return true;
+  }
+
+  async extract(url: string): Promise<ExtractedPost> {
+    const urlObj = new URL(url);
+    this.validateUrl(urlObj);
 
     try {
-      const result = await Mercury.parse(url.href) as MercuryResult;
+      const result = await Mercury.parse(url) as MercuryResult;
 
       return {
         platform: 'article',
-        url: url.href,
-        author: result.author || undefined,
-        timestamp: result.date_published ? new Date(result.date_published) : null,
-        title: result.title || undefined,
+        url: url,
+        author: result.author || '',
+        date_published: result.date_published || new Date().toISOString(),
+        title: result.title || '',
+        content: result.content || '',
         plainText: result.content || '',
-        mediaUrls: result.lead_image_url ? [result.lead_image_url] : undefined
+        mediaUrls: result.lead_image_url ? [result.lead_image_url] : []
       };
     } catch (error) {
-      throw new Error(`Failed to extract article: ${(error as Error).message}`);
+      throw new Error(`Failed to extract article: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 } 

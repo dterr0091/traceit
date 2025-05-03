@@ -1,5 +1,6 @@
 import { extract } from '../extractors/router';
-import { ExtractedPost, UnsupportedInputError } from '../types/ExtractedPost';
+import { ExtractedPost } from '../types';
+import { UnsupportedInputError } from '../types/ExtractedPost';
 
 interface IngestInput {
   url?: string;

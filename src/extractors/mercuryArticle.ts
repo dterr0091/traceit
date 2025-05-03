@@ -1,44 +1,46 @@
-import axios from 'axios';
-import { parse } from '@postlight/mercury-parser';
+import Mercury from '@postlight/mercury-parser';
 import { Extractor } from './base';
 import { ExtractedPost } from '../types';
 import { ContentTooSmallError } from '../errors/ContentTooSmallError';
 
+interface MercuryResult {
+  title: string | null;
+  author: string | null;
+  date_published: string | null;
+  content: string | null;
+  lead_image_url: string | null;
+}
+
 export class MercuryArticleExtractor extends Extractor {
+  static canHandle(url: URL): boolean {
+    // Assuming it can handle general article-like URLs
+    return true;
+  }
+
   async isEligible(url: string): Promise<boolean> {
+    // Assuming eligibility for any http/https URL as a generic article extractor
     return url.startsWith('http://') || url.startsWith('https://');
   }
 
   async extract(url: string): Promise<ExtractedPost> {
-    try {
-      const response = await axios.get(url);
-      const html = response.data;
-      
-      if (html.length < 1024) {
-        throw new ContentTooSmallError();
-      }
+    const urlObj = new URL(url);
+    this.validateUrl(urlObj);
 
-      const result = await parse(url, { html });
-      
-      if (!result.content || result.content.length < 100) {
-        throw new ContentTooSmallError();
-      }
+    try {
+      const result = await Mercury.parse(url) as MercuryResult;
 
       return {
         platform: 'article',
-        title: result.title || '',
+        url: url,
         author: result.author || '',
         date_published: result.date_published || new Date().toISOString(),
-        content: result.content,
-        plainText: result.content,
-        mediaUrls: result.lead_image_url ? [result.lead_image_url] : [],
-        url
+        title: result.title || '',
+        content: result.content || '',
+        plainText: result.content || '',
+        mediaUrls: result.lead_image_url ? [result.lead_image_url] : []
       };
     } catch (error) {
-      if (error instanceof ContentTooSmallError) {
-        throw error;
-      }
-      throw new Error(`Failed to extract article: ${error.message}`);
+      throw new Error(`Failed to extract article with Mercury: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 } 

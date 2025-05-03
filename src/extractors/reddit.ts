@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Extractor } from './base';
-import { ExtractedPost } from '../types/ExtractedPost';
+import { ExtractedPost } from '../types';
 
 interface RedditPost {
   data: {
@@ -34,11 +34,21 @@ export class RedditExtractor extends Extractor {
     return url.hostname === 'reddit.com' || url.hostname === 'www.reddit.com';
   }
 
-  async extract(url: URL): Promise<ExtractedPost> {
-    this.validateUrl(url);
+  async isEligible(url: string): Promise<boolean> {
+    try {
+      const urlObj = new URL(url);
+      return RedditExtractor.canHandle(urlObj);
+    } catch {
+      return false;
+    }
+  }
+
+  async extract(url: string): Promise<ExtractedPost> {
+    const urlObj = new URL(url);
+    this.validateUrl(urlObj);
 
     // Extract post ID from URL
-    const matches = url.pathname.match(/\/comments\/([a-zA-Z0-9]+)/);
+    const matches = urlObj.pathname.match(/\/comments\/([a-zA-Z0-9]+)/);
     if (!matches) {
       throw new Error('Invalid Reddit URL format');
     }
@@ -64,12 +74,13 @@ export class RedditExtractor extends Extractor {
 
     return {
       platform: 'reddit',
-      url: url.href,
-      author: post.author,
-      timestamp: new Date(post.created_utc * 1000),
-      title: post.title,
-      plainText: post.selftext || post.title,
-      mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined
+      url: url,
+      author: post.author || '',
+      date_published: new Date(post.created_utc * 1000).toISOString(),
+      title: post.title || '',
+      content: post.selftext || '',
+      plainText: post.selftext || post.title || '',
+      mediaUrls: mediaUrls
     };
   }
 } 

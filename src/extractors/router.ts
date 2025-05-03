@@ -5,32 +5,38 @@ import { MercuryArticleExtractor } from './mercuryArticle';
 import { HeadlessFallbackExtractor } from './headlessFallback';
 import { GenericArticleExtractor } from './genericArticle';
 import { HeadlessExtractor } from './headless';
-import { ExtractedPost, UnsupportedInputError } from '../types/ExtractedPost';
+import { ExtractedPost } from '../types';
+import { UnsupportedInputError } from '../types/ExtractedPost';
 
-export const EXTRACTORS: Extractor[] = [
-  new RedditExtractor(),
-  new YouTubeExtractor(),
-  new MercuryArticleExtractor(),
-  new HeadlessFallbackExtractor()
+// Define the list of extractor classes, not instances
+const EXTRACTOR_CLASSES = [
+  RedditExtractor,
+  YouTubeExtractor,
+  MercuryArticleExtractor,
+  HeadlessFallbackExtractor,
+  GenericArticleExtractor,
+  HeadlessExtractor,
 ];
 
 export async function extract(urlString: string): Promise<ExtractedPost> {
-  let url: URL;
+  let urlObj: URL;
   try {
-    url = new URL(urlString);
+    urlObj = new URL(urlString);
   } catch (error) {
     throw new UnsupportedInputError(`Invalid URL: ${urlString}`);
   }
 
-  // Find the first extractor that can handle this URL
-  for (const ExtractorClass of EXTRACTORS) {
-    if (ExtractorClass.canHandle(url)) {
-      const extractor = ExtractorClass;
+  // Find the first eligible extractor class
+  for (const ExtractorClass of EXTRACTOR_CLASSES) {
+    // Instantiate the class to check eligibility
+    const extractorInstance = new ExtractorClass();
+    if (await extractorInstance.isEligible(urlString)) {
       try {
-        return await extractor.extract(url);
+        // Use the instance to extract
+        return await extractorInstance.extract(urlString);
       } catch (error) {
-        // If this extractor fails, try the next one
-        console.warn(`Extractor ${ExtractorClass.name} failed:`, error);
+        // If this extractor fails, log and try the next one
+        console.warn(`Extractor ${ExtractorClass.name} failed for ${urlString}:`, error);
         continue;
       }
     }
