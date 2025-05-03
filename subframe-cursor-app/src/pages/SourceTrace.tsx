@@ -200,6 +200,16 @@ function SourceTrace() {
     setDeleteModalState({ isOpen: true, noteId });
   };
 
+  const handleHelpfulClick = (noteId: number) => {
+    setCommunityNotes(prevNotes => 
+      prevNotes.map(note => 
+        note.id === noteId 
+          ? { ...note, helpfulCount: note.helpfulCount + 1 }
+          : note
+      )
+    );
+  };
+
   const confirmDelete = () => {
     if (deleteModalState.noteId) {
       setCommunityNotes(prevNotes => prevNotes.filter(note => note.id !== deleteModalState.noteId));
@@ -276,7 +286,11 @@ function SourceTrace() {
           </Table.HeaderRow>
         }
       >
-        {Array(3).fill(0).map((_, index) => renderSkeletonRow())}
+        {Array(3).fill(0).map((_, index) => (
+          <React.Fragment key={`skeleton-${index}`}>
+            {renderSkeletonRow()}
+          </React.Fragment>
+        ))}
       </Table>
     </div>
   );
@@ -404,22 +418,6 @@ function SourceTrace() {
               Trace
             </Button>
           </div>
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge icon={<FeatherGlobe />}>All Platforms</Badge>
-              <Badge variant="neutral">Last 30 days</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="neutral-tertiary"
-                size="small"
-                iconRight={<FeatherChevronDown />}
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
-              >
-                Sort by: First appearance
-              </Button>
-            </div>
-          </div>
         </div>
         <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-8 px-6 py-6 overflow-auto">
           {searchState.isLoading ? (
@@ -483,14 +481,6 @@ function SourceTrace() {
                   <span className="text-heading-3 font-heading-3 text-default-font">
                     Virality
                   </span>
-                  <Button
-                    variant="neutral-tertiary"
-                    size="small"
-                    iconRight={<FeatherChevronDown />}
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
-                  >
-                    Sort by: First appearance
-                  </Button>
                 </div>
                 <Table
                   header={
@@ -503,7 +493,7 @@ function SourceTrace() {
                   }
                 >
                   {searchState.results?.map((result, index) => (
-                    <Table.Row key={index}>
+                    <Table.Row key={`result-${result.title}-${index}`}>
                       <Table.Cell>
                         <span className="text-body-bold font-body-bold text-default-font">
                           {result.title}
@@ -603,7 +593,7 @@ function SourceTrace() {
                             variant="neutral-tertiary"
                             size="small"
                             icon={<FeatherThumbsUp />}
-                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                            onClick={() => handleHelpfulClick(note.id)}
                           >
                             Helpful ({note.helpfulCount})
                           </Button>

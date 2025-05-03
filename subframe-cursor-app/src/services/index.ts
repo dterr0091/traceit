@@ -1,1 +1,2 @@
-export { SearchService } from './searchService'; 
+export { SearchService } from './searchService';
+export * from './mockData'; 
