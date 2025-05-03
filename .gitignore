@@ -47,4 +47,30 @@ yarn-error.log*
 .coverage
 htmlcov/
 .pytest_cache/
-.mypy_cache/ 
+.mypy_cache/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.test
+.env.production
+
+# Chromium downloads
+.local-chromium/
+
+# Logs
+logs/
+*.log
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo 
