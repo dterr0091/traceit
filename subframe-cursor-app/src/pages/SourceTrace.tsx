@@ -8,7 +8,6 @@ import { FeatherXCircle } from "@subframe/core";
 import { Button } from "@/ui/components/Button";
 import { Badge } from "@/ui/components/Badge";
 import { FeatherGlobe } from "@subframe/core";
-import { FeatherChevronDown } from "@subframe/core";
 import { IconButton } from "@/ui/components/IconButton";
 import { FeatherShare2 } from "@subframe/core";
 import { Avatar } from "@/ui/components/Avatar";
@@ -16,11 +15,10 @@ import { FeatherClock } from "@subframe/core";
 import { Table } from "@/ui/components/Table";
 import { FeatherPlus } from "@subframe/core";
 import { FeatherThumbsUp } from "@subframe/core";
-import { FeatherImage } from "@subframe/core";
 import { FeatherLoader } from "@subframe/core";
 import { FeatherUpload } from "@subframe/core";
-import { mockSearch, mockLoadingSteps, mockCommunityNotes } from '../services/mockData';
-import { SearchResult, SearchState, CommunityNote, PerplexitySearchResult, SearchInput } from '../types/sourceTrace';
+import { mockCommunityNotes } from '../services/mockData';
+import { SearchState, CommunityNote, SearchInput } from '../types/sourceTrace';
 import { SearchService } from '../services';
 import { ShareModal } from "@/ui/components/ShareModal";
 
@@ -61,14 +59,26 @@ function SourceTrace() {
     try {
       // Prepare search input
       const searchInput: SearchInput = {
-        text: searchQuery,
-        image_urls: uploadedImages,
-        max_results: 4
+        query: searchQuery,
+        images: []
       };
 
       // Perform search
-      const { originalSources, viralPoints } = await searchService.current.search(searchInput);
+      const results = await searchService.current.search(searchInput.query ?? '');
       
+      // Transform results into the expected format
+      const originalSources = results.filter(result => result.isOriginalSource);
+      const viralPoints = results.filter(result => !result.isOriginalSource);
+
+      const viralResults = viralPoints.map(result => ({
+        title: result.title,
+        platform: result.platform,
+        timestamp: result.timestamp,
+        viralityScore: result.viralityScore,
+        platformIcon: result.platformIcon,
+        isOriginalSource: false
+      }));
+
       // Update community notes based on search results
       const updatedNotes = mockCommunityNotes.map(note => ({
         ...note,
@@ -79,24 +89,12 @@ function SourceTrace() {
       }));
       setCommunityNotes(updatedNotes);
 
-      // Only use viralPoints for the results table
-      const viralResults = viralPoints.map(result => ({
-        title: result.title,
-        platform: result.platform,
-        timestamp: result.timestamp,
-        viralityScore: result.engagement_metrics?.views && result.engagement_metrics.views > 10000 ? 'High' as const : 
-                      result.engagement_metrics?.views && result.engagement_metrics.views > 1000 ? 'Medium' as const : 'Low' as const,
-        platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                     result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                     result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                     "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
-        isOriginalSource: false
-      }));
-
       setSearchState(prev => ({
         ...prev,
         isLoading: false,
-        results: viralResults
+        results: viralResults,
+        currentStep: 'completed',
+        error: null
       }));
     } catch (error) {
       setSearchState(prev => ({
@@ -247,7 +245,7 @@ function SourceTrace() {
         </span>
         <IconButton
           icon={<FeatherShare2 />}
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+          onClick={() => {}}
         />
       </div>
       <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
@@ -600,7 +598,7 @@ function SourceTrace() {
                           <Button
                             variant="neutral-tertiary"
                             size="small"
-                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                            onClick={() => {}}
                           >
                             Reply
                           </Button>

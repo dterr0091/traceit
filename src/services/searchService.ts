@@ -4,7 +4,7 @@ import { OpenAIAnalysisService } from './openaiAnalysis';
 import { ExtractedPost } from '../types';
 
 const PERPLEXITY_API_URL = 'https://api.perplexity.ai/sonar';
-const PERPLEXITY_API_KEY = import.meta.env.PERPLEXITY_API_KEY;
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
 export class SearchService {
   private openaiAnalysis: OpenAIAnalysisService;
@@ -14,6 +14,9 @@ export class SearchService {
   }
 
   private async callPerplexityAPI(query: string, maxResults: number = 4): Promise<PerplexitySearchResult[]> {
+    if (!PERPLEXITY_API_KEY) {
+      throw new Error('PERPLEXITY_API_KEY environment variable is not set');
+    }
     try {
       const response = await axios.post<PerplexitySearchResponse>(
         PERPLEXITY_API_URL,

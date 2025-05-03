@@ -1,9 +1,9 @@
-import { SearchResult, SearchState, SearchInput } from '../types/sourceTrace';
+import { SearchResult, SearchState } from '../types/sourceTrace';
 
 export class SearchService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = process.env.VITE_API_URL ?? 'http://localhost:3000/api';
 
-  async search(query: string, images: string[]): Promise<SearchResult[]> {
+  async search(query: string): Promise<SearchResult[]> {
     try {
       const response = await fetch(`${this.apiUrl}/analyze`, {
         method: 'POST',

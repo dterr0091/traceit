@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { ExtractedPost } from '../types';
+import { SearchInput } from '../types/sourceTrace';
 
 export interface AnalysisResult {
   searchQueries: string[];
@@ -16,7 +16,7 @@ export class OpenAIAnalysisService {
   private openai: OpenAI | null;
 
   constructor() {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const apiKey = process.env.VITE_OPENAI_API_KEY ?? '';
     if (!apiKey) {
       console.warn('OpenAI API key not found. Some features may be limited.');
       this.openai = null;
@@ -28,16 +28,16 @@ export class OpenAIAnalysisService {
     }
   }
 
-  public async analyzeContent(post: ExtractedPost): Promise<AnalysisResult> {
+  public async analyzeContent(input: SearchInput): Promise<AnalysisResult> {
     // If OpenAI is not available, return mock data
     if (!this.openai) {
       return {
         searchQueries: [
-          `${post.title} original source`,
-          `${post.title} first appearance`,
-          `${post.title} earliest mention`
+          `${input.title ?? 'Content'} original source`,
+          `${input.title ?? 'Content'} first appearance`,
+          `${input.title ?? 'Content'} earliest mention`
         ],
-        keyTopics: post.title.split(' ').slice(0, 3),
+        keyTopics: (input.title ?? '').split(' ').slice(0, 3),
         suggestedTimeframe: '2020-2024'
       };
     }
@@ -52,7 +52,7 @@ export class OpenAIAnalysisService {
           },
           {
             role: 'user',
-            content: this.buildTextPrompt(post)
+            content: this.buildTextPrompt(input)
           }
         ],
         temperature: 0.7,
@@ -76,24 +76,24 @@ export class OpenAIAnalysisService {
       // Return mock data if OpenAI fails
       return {
         searchQueries: [
-          `${post.title} original source`,
-          `${post.title} first appearance`,
-          `${post.title} earliest mention`
+          `${input.title ?? 'Content'} original source`,
+          `${input.title ?? 'Content'} first appearance`,
+          `${input.title ?? 'Content'} earliest mention`
         ],
-        keyTopics: post.title.split(' ').slice(0, 3),
+        keyTopics: (input.title ?? '').split(' ').slice(0, 3),
         suggestedTimeframe: '2020-2024'
       };
     }
   }
 
-  private buildTextPrompt(post: ExtractedPost): string {
+  private buildTextPrompt(input: SearchInput): string {
     return `
       Analyze the following content and generate search queries to find its original source and related content:
 
-      Title: ${post.title}
-      Content: ${post.content}
-      Publication Date: ${post.date_published}
-      Platform: ${post.platform}
+      Title: ${input.title ?? 'Untitled'}
+      Content: ${input.content ?? 'No content provided'}
+      Publication Date: ${input.date_published ?? 'Unknown'}
+      Platform: ${input.platform ?? 'Unknown'}
 
       Please provide:
       1. Three search queries optimized for finding the original source and related content

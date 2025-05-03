@@ -33,4 +33,8 @@ export interface PerplexitySearchResult {
 export interface SearchInput {
   query?: string;
   images?: string[];
+  title?: string;
+  content?: string;
+  date_published?: string;
+  platform?: string;
 } 

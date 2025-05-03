@@ -6,7 +6,6 @@
 
 import React from "react";
 import * as SubframeUtils from "../utils";
-import * as SubframeCore from "@subframe/core";
 
 interface InputProps
   extends Omit<

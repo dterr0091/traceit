@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import * as SubframeUtils from "../utils";
 import { Button } from "./Button";
 import { FeatherX, FeatherClipboard } from "@subframe/core";
 import { IconButton } from "./IconButton";

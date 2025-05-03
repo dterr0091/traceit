@@ -9,7 +9,6 @@
 
 import React from "react";
 import * as SubframeUtils from "../utils";
-import { DropdownMenu } from "./DropdownMenu";
 import * as SubframeCore from "@subframe/core";
 
 interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
