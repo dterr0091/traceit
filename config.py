@@ -1,10 +1,18 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class Settings(BaseSettings):
     # OpenAI Configuration
-    OPENAI_API_KEY: str
-    OPENAI_MODEL: str = "gpt-4-turbo-preview"
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
+    
+    # Perplexity API Configuration
+    PERPLEXITY_API_KEY: str = os.getenv("PERPLEXITY_API_KEY", "")
     
     # API Configuration
     API_VERSION: str = "v1"
@@ -13,4 +21,9 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-settings = Settings() 
+# Validate API keys
+settings = Settings()
+if not settings.OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY is required. Please set it in your .env file.")
+if not settings.PERPLEXITY_API_KEY:
+    raise ValueError("PERPLEXITY_API_KEY is required. Please set it in your .env file.") 

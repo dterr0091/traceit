@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, HttpUrl
 import logging
 from services.openai_service import OpenAIService
-from services.api_integrations.mock_perplexity import MockPerplexityAPI
+from services.api_integrations.perplexity import PerplexityAPI
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +25,15 @@ class SearchInput(BaseModel):
     max_results: int = Field(default=4, ge=1, le=10)
 
 class SearchService:
-    """Service for handling search functionality across multiple platforms."""
+    """Service for handling search functionality using Perplexity API."""
     
     def __init__(self):
         self.openai_service = OpenAIService()
-        self.perplexity_api = MockPerplexityAPI()
+        self.perplexity_api = PerplexityAPI()
         
-    def search(self, input_data: SearchInput) -> List[SearchResult]:
+    async def search(self, input_data: SearchInput) -> List[SearchResult]:
         """
-        Perform a search across multiple platforms using the provided input.
+        Perform a search using the Perplexity API.
         
         Args:
             input_data: SearchInput object containing search parameters
@@ -49,7 +49,7 @@ class SearchService:
             
         try:
             # Use Perplexity API for web search
-            search_results = self.perplexity_api.search(
+            search_results = await self.perplexity_api.search(
                 query=input_data.text,
                 image_urls=input_data.image_urls,
                 urls=input_data.urls,
@@ -63,7 +63,7 @@ class SearchService:
                     processed_result = SearchResult(
                         title=result.get("title", ""),
                         url=result.get("url"),
-                        platform=result.get("platform", "Unknown"),
+                        platform=result.get("platform", "Web"),
                         timestamp=datetime.fromisoformat(result.get("timestamp")),
                         virality_score=float(result.get("virality_score", 0)),
                         snippet=result.get("snippet"),

@@ -1,3 +1,7 @@
+# Environment variables
+.env
+.env.*
+
 # Python
 __pycache__/
 *.py[cod]
@@ -19,21 +23,11 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# Virtual Environment
+venv/
+env/
+ENV/
 
 # IDE
 .idea/
@@ -42,11 +36,34 @@ yarn-error.log*
 *.swo
 .DS_Store
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Logs
+*.log
+logs/
+log/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
 # Project specific
 *.log
 .coverage
 htmlcov/
-.pytest_cache/
 .mypy_cache/
 
 # Build output
@@ -55,7 +72,6 @@ build/
 coverage/
 
 # Environment variables
-.env
 .env.local
 .env.*.local
 .env.test
@@ -64,12 +80,7 @@ coverage/
 # Chromium downloads
 .local-chromium/
 
-# Logs
-logs/
-*.log
-
 # Test coverage
-coverage/
 .nyc_output/
 
 # TypeScript
