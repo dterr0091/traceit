@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@postlight/mercury-parser": "^2.2.0",
+    "@sparticuz/chromium": "^110.0.0",
     "axios": "^1.6.0",
-    "chrome-aws-lambda": "^10.1.0",
     "node-fetch": "^3.3.2",
     "openai": "^4.28.0",
     "puppeteer-core": "^22.7.0",
