@@ -1,14 +1,17 @@
+import { Extractor } from './base';
 import { RedditExtractor } from './reddit';
 import { YouTubeExtractor } from './youtube';
+import { MercuryArticleExtractor } from './mercuryArticle';
+import { HeadlessFallbackExtractor } from './headlessFallback';
 import { GenericArticleExtractor } from './genericArticle';
 import { HeadlessExtractor } from './headless';
 import { ExtractedPost, UnsupportedInputError } from '../types/ExtractedPost';
 
-const EXTRACTORS = [
-  RedditExtractor,
-  YouTubeExtractor,
-  GenericArticleExtractor,
-  HeadlessExtractor
+export const EXTRACTORS: Extractor[] = [
+  new RedditExtractor(),
+  new YouTubeExtractor(),
+  new MercuryArticleExtractor(),
+  new HeadlessFallbackExtractor()
 ];
 
 export async function extract(urlString: string): Promise<ExtractedPost> {
@@ -22,7 +25,7 @@ export async function extract(urlString: string): Promise<ExtractedPost> {
   // Find the first extractor that can handle this URL
   for (const ExtractorClass of EXTRACTORS) {
     if (ExtractorClass.canHandle(url)) {
-      const extractor = new ExtractorClass();
+      const extractor = ExtractorClass;
       try {
         return await extractor.extract(url);
       } catch (error) {

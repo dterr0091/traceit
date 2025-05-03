@@ -59,32 +59,50 @@ function SourceTrace() {
       };
 
       // Perform search
-      const results = await searchService.current.search(searchInput);
+      const { originalSources, viralPoints } = await searchService.current.search(searchInput);
       
       // Update community notes based on search results
       const updatedNotes = mockCommunityNotes.map(note => ({
         ...note,
         content: note.content.replace(
           "Original source verified",
-          `Original source verified for "${results[0]?.title || 'the search query'}"`
+          `Original source verified for "${originalSources[0]?.title || 'the search query'}"`
         )
       }));
       setCommunityNotes(updatedNotes);
 
-      setSearchState(prev => ({
-        ...prev,
-        isLoading: false,
-        results: results.map((result: PerplexitySearchResult) => ({
+      // Combine original sources and viral points for display
+      const allResults = [
+        ...originalSources.map((result, index) => ({
           title: result.title,
           platform: result.platform,
           timestamp: result.timestamp,
-          viralityScore: result.engagement_metrics.views && result.engagement_metrics.views > 10000 ? 'High' : 
-                        result.engagement_metrics.views && result.engagement_metrics.views > 1000 ? 'Medium' : 'Low',
+          viralityScore: 'High' as const,
           platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
                        result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
                        result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9"
+                       "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
+          isOriginalSource: true,
+          sourceIndex: index + 1
+        })),
+        ...viralPoints.map(result => ({
+          title: result.title,
+          platform: result.platform,
+          timestamp: result.timestamp,
+          viralityScore: result.engagement_metrics?.views && result.engagement_metrics.views > 10000 ? 'High' as const : 
+                        result.engagement_metrics?.views && result.engagement_metrics.views > 1000 ? 'Medium' as const : 'Low' as const,
+          platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                       result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                       result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                       "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
+          isOriginalSource: false
         }))
+      ];
+
+      setSearchState(prev => ({
+        ...prev,
+        isLoading: false,
+        results: allResults
       }));
     } catch (error) {
       setSearchState(prev => ({

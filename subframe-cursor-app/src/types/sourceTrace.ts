@@ -4,6 +4,8 @@ export interface SearchResult {
   timestamp: string;
   viralityScore: 'High' | 'Medium' | 'Low';
   platformIcon: string;
+  isOriginalSource: boolean;
+  sourceIndex?: number;
 }
 
 export interface SearchState {

@@ -1,6 +1,7 @@
 import { ExtractedPost } from '../types/ExtractedPost';
+import { Extractor as ExtractorInterface } from '../types';
 
-export abstract class Extractor {
+export abstract class Extractor implements ExtractorInterface {
   /**
    * Check if this extractor can handle the given URL
    */
@@ -21,4 +22,6 @@ export abstract class Extractor {
       throw new Error('Invalid URL provided');
     }
   }
+
+  abstract isEligible(url: string): Promise<boolean>;
 } 

@@ -11,8 +11,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "@postlight/parser": "^2.2.3",
     "@subframe/core": "^1.143.0",
     "axios": "^1.9.0",
+    "openai": "^4.97.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.5.3"
