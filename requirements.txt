@@ -12,4 +12,6 @@ google-api-python-client>=2.108.0  # YouTube API
 newsapi-python>=0.2.7  # News API
 aiohttp>=3.9.1  # Async HTTP client
 tenacity>=8.2.3  # Retry logic
-ffmpeg-python>=0.2.0  # FFmpeg wrapper for video processing 
+ffmpeg-python>=0.2.0  # FFmpeg wrapper for video processing
+Pillow>=10.0.0  # Image processing
+python-multipart>=0.0.6  # For handling multipart form data 

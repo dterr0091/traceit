@@ -2,9 +2,11 @@
 import os
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import ffmpeg
 from pydantic import BaseModel, Field
+import asyncio
+import tempfile
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,8 +19,15 @@ class VideoProcessingError(Exception):
 class VideoProcessor:
     """Handles video processing operations using ffmpeg."""
     
-    def __init__(self) -> None:
-        """Initialize the video processor."""
+    def __init__(self, output_dir: Optional[str] = None):
+        """
+        Initialize the VideoProcessor.
+        
+        Args:
+            output_dir: Directory to store extracted frames. If None, uses a temporary directory.
+        """
+        self.output_dir = output_dir or tempfile.mkdtemp(prefix='traceit_frames_')
+        Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         self._validate_ffmpeg_installation()
     
     def _validate_ffmpeg_installation(self) -> None:
@@ -30,6 +39,60 @@ class VideoProcessor:
             pass
         except Exception as e:
             raise VideoProcessingError(f"FFmpeg not properly installed: {str(e)}")
+    
+    async def extract_key_frames(self, video_path: str, num_frames: int = 5) -> List[str]:
+        """
+        Extract key frames from a video using FFmpeg.
+        
+        Args:
+            video_path: Path to the video file
+            num_frames: Number of frames to extract
+            
+        Returns:
+            List of paths to extracted frame images
+        """
+        video_path = Path(video_path)
+        if not video_path.exists():
+            raise FileNotFoundError(f"Video file not found: {video_path}")
+
+        # Get video duration
+        probe = ffmpeg.probe(str(video_path))
+        duration = float(probe['format']['duration'])
+        
+        # Calculate frame extraction points
+        frame_times = [duration * (i + 1) / (num_frames + 1) for i in range(num_frames)]
+        
+        # Extract frames
+        frame_paths = []
+        for i, time in enumerate(frame_times):
+            output_path = Path(self.output_dir) / f"frame_{i+1}.jpg"
+            
+            try:
+                (
+                    ffmpeg
+                    .input(str(video_path))
+                    .filter('select', f'gte(t,{time})')
+                    .filter('scale', 640, -1)  # Scale to width 640, maintain aspect ratio
+                    .output(str(output_path), vframes=1)
+                    .overwrite_output()
+                    .run(capture_stdout=True, capture_stderr=True)
+                )
+                frame_paths.append(str(output_path))
+            except ffmpeg.Error as e:
+                print(f"Error extracting frame at time {time}: {str(e)}")
+                continue
+        
+        if not frame_paths:
+            raise RuntimeError("Failed to extract any frames from the video")
+            
+        return frame_paths
+
+    def cleanup(self):
+        """Clean up extracted frames."""
+        if self.output_dir and os.path.exists(self.output_dir):
+            for file in Path(self.output_dir).glob('*.jpg'):
+                file.unlink()
+            os.rmdir(self.output_dir)
     
     def extract_frames(
         self,
