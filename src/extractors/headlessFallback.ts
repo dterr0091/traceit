@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer-core';
 import { parse } from '@postlight/mercury-parser';
 import { Extractor } from './base';
-import { ExtractedPost } from '../types/ExtractedPost';
+import { ExtractedPost } from '../types';
 import { ContentTooSmallError } from '../errors/ContentTooSmallError';
 import chromium from '@sparticuz/chromium';
 
@@ -10,7 +10,7 @@ export class HeadlessFallbackExtractor extends Extractor {
     return url.startsWith('http://') || url.startsWith('https://');
   }
 
-  async extract(url: URL): Promise<ExtractedPost> {
+  async extract(url: string): Promise<ExtractedPost> {
     const executablePath = await chromium.executablePath(
       process.env.CHROMIUM_EXECUTABLE_PATH || undefined
     );
@@ -25,7 +25,7 @@ export class HeadlessFallbackExtractor extends Extractor {
 
     try {
       const page = await browser.newPage();
-      await page.goto(url.toString(), {
+      await page.goto(url, {
         waitUntil: 'networkidle0',
         timeout: parseInt(process.env.HEADLESS_TIMEOUT_MS || '20000')
       });
@@ -37,7 +37,7 @@ export class HeadlessFallbackExtractor extends Extractor {
         throw new ContentTooSmallError();
       }
 
-      const result = await parse(url.toString(), { html });
+      const result = await parse(url, { html });
       
       if (!result.content || result.content.length < 100) {
         throw new ContentTooSmallError();
@@ -47,10 +47,11 @@ export class HeadlessFallbackExtractor extends Extractor {
         platform: 'article',
         title: result.title || '',
         author: result.author || '',
-        timestamp: result.date_published ? new Date(result.date_published) : new Date(),
+        date_published: result.date_published || new Date().toISOString(),
+        content: result.content || '',
         plainText: result.content || '',
         mediaUrls: result.lead_image_url ? [result.lead_image_url] : [],
-        url: url.toString()
+        url: url
       };
     } catch (error: unknown) {
       await browser.close();

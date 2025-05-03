@@ -1,4 +1,4 @@
-import { ExtractedPost } from '../types/ExtractedPost';
+import { ExtractedPost } from '../types';
 import { Extractor as ExtractorInterface } from '../types';
 
 export abstract class Extractor implements ExtractorInterface {
@@ -12,7 +12,7 @@ export abstract class Extractor implements ExtractorInterface {
   /**
    * Extract content from the given URL and return structured data
    */
-  abstract extract(url: URL): Promise<ExtractedPost>;
+  abstract extract(url: string): Promise<ExtractedPost>;
 
   /**
    * Helper method to validate URL format

@@ -8,6 +8,8 @@ export interface ExtractedPost {
   title?: string;
   plainText: string;          // caption, body, or transcript
   mediaUrls?: string[];       // direct links to images / videos / thumbnails
+  date_published?: string;    // Added for compatibility
+  content?: string;           // Added for compatibility
 }
 
 export class UnsupportedInputError extends Error {

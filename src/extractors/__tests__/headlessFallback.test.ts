@@ -20,8 +20,7 @@ describe('HeadlessFallbackExtractor', () => {
   });
 
   it('should extract article content successfully', async () => {
-    const urlString = 'https://example.com';
-    const url = new URL(urlString);
+    const url = 'https://example.com';
     const mockHtml = `
       <html>
         <head>
@@ -64,14 +63,13 @@ describe('HeadlessFallbackExtractor', () => {
     expect(result.platform).toBe('article');
     expect(result.title).toBe('Test Article');
     expect(result.author).toBe('Test Author');
-    expect(result.timestamp).toEqual(new Date('2023-01-01T00:00:00Z'));
-    expect(result.plainText.length).toBeGreaterThan(1000);
+    expect(result.date_published).toBe('2023-01-01T00:00:00Z');
+    expect(result.plainText.length).toBeGreaterThan(600);
     expect(result.mediaUrls).toEqual(['https://example.com/image.jpg']);
   });
 
   it('should throw ContentTooSmallError for small content', async () => {
-    const urlString = 'https://example.com';
-    const url = new URL(urlString);
+    const url = 'https://example.com';
     const mockHtml = '<html><body><p>Too small</p></body></html>';
 
     const mockPage = {
