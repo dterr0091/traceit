@@ -18,21 +18,9 @@ import { FeatherPlus } from "@subframe/core";
 import { FeatherThumbsUp } from "@subframe/core";
 import { FeatherImage } from "@subframe/core";
 import { FeatherLoader } from "@subframe/core";
-
-interface SearchResult {
-  title: string;
-  platform: string;
-  timestamp: string;
-  viralityScore: 'High' | 'Medium' | 'Low';
-  platformIcon: string;
-}
-
-interface SearchState {
-  isLoading: boolean;
-  currentStep: string;
-  error: string | null;
-  results: SearchResult[] | null;
-}
+import { FeatherUpload } from "@subframe/core";
+import { mockSearch, mockLoadingSteps, mockCommunityNotes } from '../services/mockData';
+import { SearchResult, SearchState, CommunityNote } from '../types/sourceTrace';
 
 function SourceTrace() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -44,37 +32,8 @@ function SourceTrace() {
     error: null,
     results: null
   });
+  const [communityNotes, setCommunityNotes] = useState<CommunityNote[]>(mockCommunityNotes);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const mockSearch = async (query: string, images: string[]) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock response
-    return [
-      {
-        title: "Tech Workforce Reduction",
-        platform: "Twitter",
-        timestamp: "March 15, 9:00 AM",
-        viralityScore: "High" as const,
-        platformIcon: "https://images.unsplash.com/photo-1611162617474-5b21e879e113"
-      },
-      {
-        title: "AI Impact on Tech Jobs",
-        platform: "Reddit",
-        timestamp: "March 15, 10:30 AM",
-        viralityScore: "Medium" as const,
-        platformIcon: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0"
-      },
-      {
-        title: "Industry Workforce Trends",
-        platform: "Facebook",
-        timestamp: "March 15, 2:15 PM",
-        viralityScore: "Low" as const,
-        platformIcon: "https://images.unsplash.com/photo-1611162618071-b39a2ec055fb"
-      }
-    ];
-  };
 
   const handleSearch = async () => {
     if (!searchQuery && uploadedImages.length === 0) {
@@ -84,29 +43,34 @@ function SourceTrace() {
 
     setSearchState({
       isLoading: true,
-      currentStep: "Analyzing input...",
+      currentStep: mockLoadingSteps[0],
       error: null,
       results: null
     });
 
     try {
       // Simulate different steps
-      const steps = [
-        "Analyzing input...",
-        "Searching web...",
-        "Compiling results..."
-      ];
-
-      for (const step of steps) {
+      for (const step of mockLoadingSteps) {
         setSearchState(prev => ({ ...prev, currentStep: step }));
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       const results = await mockSearch(searchQuery, uploadedImages);
+      
+      // Update community notes based on search results
+      const updatedNotes = mockCommunityNotes.map(note => ({
+        ...note,
+        content: note.content.replace(
+          "Original source verified",
+          `Original source verified for "${results[0]?.title || 'the search query'}"`
+        )
+      }));
+      setCommunityNotes(updatedNotes);
+
       setSearchState(prev => ({
         ...prev,
         isLoading: false,
-        results
+        results: results || []
       }));
     } catch (error) {
       setSearchState(prev => ({
@@ -201,8 +165,13 @@ function SourceTrace() {
   const renderSkeletonContent = () => (
     <div className="flex w-full flex-col items-start gap-4">
       <div className="flex w-full items-center justify-between">
-        <div className="h-8 w-32 bg-neutral-100 rounded animate-pulse" />
-        <div className="h-8 w-8 bg-neutral-100 rounded-full animate-pulse" />
+        <span className="text-heading-2 font-heading-2 text-default-font">
+          Source Trace
+        </span>
+        <IconButton
+          icon={<FeatherShare2 />}
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+        />
       </div>
       <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
         <div className="flex w-full items-start gap-4">
@@ -229,6 +198,7 @@ function SourceTrace() {
           </div>
         </div>
       </div>
+      
       <Table
         header={
           <Table.HeaderRow>
@@ -241,6 +211,50 @@ function SourceTrace() {
       >
         {Array(3).fill(0).map((_, index) => renderSkeletonRow())}
       </Table>
+    </div>
+  );
+
+  const renderEmptyState = () => (
+    <div className="flex w-full flex-col items-center gap-6 py-12">
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-50">
+          <FeatherSearch className="text-brand-600" />
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-heading-2 font-heading-2 text-default-font">
+            Start Tracing Sources
+          </span>
+          <span className="text-body font-body text-subtext-color text-center max-w-md">
+            Enter a search query or upload images to trace the origin and spread of content across different platforms.
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100">
+            <FeatherSearch className="text-neutral-600" />
+          </div>
+          <span className="text-body font-body text-default-font">
+            Search by keywords or phrases
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100">
+            <FeatherUpload className="text-neutral-600" />
+          </div>
+          <span className="text-body font-body text-default-font">
+            Upload up to 5 images to trace
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100">
+            <FeatherGlobe className="text-neutral-600" />
+          </div>
+          <span className="text-body font-body text-default-font">
+            View results across multiple platforms
+          </span>
+        </div>
+      </div>
     </div>
   );
 
@@ -343,7 +357,7 @@ function SourceTrace() {
         <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-8 px-6 py-6 overflow-auto">
           {searchState.isLoading ? (
             renderSkeletonContent()
-          ) : (
+          ) : searchState.results ? (
             <div className="flex w-full flex-col items-start gap-4">
               <div className="flex w-full items-center justify-between">
                 <span className="text-heading-2 font-heading-2 text-default-font">
@@ -358,31 +372,32 @@ function SourceTrace() {
                 <div className="flex w-full items-start gap-4">
                   <Avatar
                     size="large"
-                    image="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9"
+                    image={searchState.results?.[0]?.platformIcon || "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9"}
                     square={true}
                   >
-                    A
+                    {searchState.results?.[0]?.platform.charAt(0) || "A"}
                   </Avatar>
                   <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
                     <span className="text-heading-2 font-heading-2 text-default-font mobile:h-auto mobile:w-auto mobile:flex-none">
-                      Breaking: Tech Workforce Reduction
+                      {searchState.results?.[0]?.title || "Breaking: Tech Workforce Reduction"}
                     </span>
                     <div className="flex w-full flex-col items-start gap-2">
                       <div className="flex w-full items-center gap-2">
                         <span className="text-body-bold font-body-bold text-default-font">
-                          TechCrunch
+                          {searchState.results?.[0]?.platform || "TechCrunch"}
                         </span>
                         <Badge>Original Source</Badge>
                       </div>
                       <span className="text-body font-body text-default-font">
-                        Breaking: Major tech companies announce significant
-                        workforce reductions as AI integration accelerates
+                        {searchState.results?.[0]?.title 
+                          ? `Breaking: ${searchState.results[0].title} - Analysis and impact on the tech industry`
+                          : "Breaking: Major tech companies announce significant workforce reductions as AI integration accelerates"}
                       </span>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <FeatherClock className="text-caption font-caption text-subtext-color" />
                           <span className="text-caption font-caption text-subtext-color">
-                            Jan 15, 2024 • 9:45 AM EST
+                            {searchState.results?.[0]?.timestamp || "Jan 15, 2024 • 9:45 AM EST"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -396,145 +411,121 @@ function SourceTrace() {
                   </div>
                 </div>
               </div>
-              <Table
-                header={
-                  <Table.HeaderRow>
-                    <Table.HeaderCell>Title</Table.HeaderCell>
-                    <Table.HeaderCell>Platform</Table.HeaderCell>
-                    <Table.HeaderCell>Time</Table.HeaderCell>
-                    <Table.HeaderCell>Virality Score</Table.HeaderCell>
-                  </Table.HeaderRow>
-                }
-              >
-                {searchState.results?.map((result, index) => (
-                  <Table.Row key={index}>
-                    <Table.Cell>
-                      <span className="text-body-bold font-body-bold text-default-font">
-                        {result.title}
-                      </span>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className="flex items-center gap-2">
-                        <Avatar
-                          size="small"
-                          image={result.platformIcon}
-                        >
-                          {result.platform.charAt(0)}
-                        </Avatar>
+              <div className="flex w-full flex-col items-start gap-4">
+                <div className="flex w-full items-center justify-between">
+                  <span className="text-heading-3 font-heading-3 text-default-font">
+                    Virality
+                  </span>
+                  <Button
+                    variant="neutral-tertiary"
+                    size="small"
+                    iconRight={<FeatherChevronDown />}
+                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                  >
+                    Sort by: First appearance
+                  </Button>
+                </div>
+                <Table
+                  header={
+                    <Table.HeaderRow>
+                      <Table.HeaderCell>Title</Table.HeaderCell>
+                      <Table.HeaderCell>Platform</Table.HeaderCell>
+                      <Table.HeaderCell>Time</Table.HeaderCell>
+                      <Table.HeaderCell>Virality Score</Table.HeaderCell>
+                    </Table.HeaderRow>
+                  }
+                >
+                  {searchState.results?.map((result, index) => (
+                    <Table.Row key={index}>
+                      <Table.Cell>
                         <span className="text-body-bold font-body-bold text-default-font">
-                          {result.platform}
+                          {result.title}
                         </span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="flex items-center gap-2">
+                          <Avatar
+                            size="small"
+                            image={result.platformIcon}
+                          >
+                            {result.platform.charAt(0)}
+                          </Avatar>
+                          <span className="text-body-bold font-body-bold text-default-font">
+                            {result.platform}
+                          </span>
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <span className="text-body font-body text-default-font">
+                          {result.timestamp}
+                        </span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge variant={result.viralityScore === 'High' ? 'success' : result.viralityScore === 'Medium' ? 'warning' : 'neutral'}>
+                          {result.viralityScore}
+                        </Badge>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table>
+              </div>
+              <div className="flex w-full flex-col items-start gap-4">
+                <div className="flex w-full items-center justify-between">
+                  <span className="text-heading-3 font-heading-3 text-default-font">
+                    Community Notes
+                  </span>
+                  <Button
+                    variant="brand-secondary"
+                    icon={<FeatherPlus />}
+                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                  >
+                    Add Note
+                  </Button>
+                </div>
+                <div className="flex w-full flex-col items-start gap-4">
+                  {communityNotes.map((note) => (
+                    <div key={note.id} className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
+                      <Avatar image={note.user.avatar}>
+                        {note.user.name.charAt(0)}
+                      </Avatar>
+                      <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-body-bold font-body-bold text-default-font">
+                            {note.user.name}
+                          </span>
+                          <Badge variant={note.user.badge === "Fact Checker" ? "success" : "warning"}>
+                            {note.user.badge}
+                          </Badge>
+                        </div>
+                        <span className="text-body font-body text-default-font">
+                          {note.content}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="neutral-tertiary"
+                            size="small"
+                            icon={<FeatherThumbsUp />}
+                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                          >
+                            Helpful ({note.helpfulCount})
+                          </Button>
+                          <Button
+                            variant="neutral-tertiary"
+                            size="small"
+                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                          >
+                            Reply
+                          </Button>
+                        </div>
                       </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <span className="text-body font-body text-default-font">
-                        {result.timestamp}
-                      </span>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge variant={result.viralityScore === 'High' ? 'success' : result.viralityScore === 'Medium' ? 'warning' : 'neutral'}>
-                        {result.viralityScore.charAt(0).toUpperCase() + result.viralityScore.slice(1)}
-                      </Badge>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+          ) : (
+            renderEmptyState()
           )}
-          <div className="flex w-full flex-col items-start gap-4">
-            <div className="flex w-full items-center justify-between">
-              <span className="text-heading-3 font-heading-3 text-default-font">
-                Community Notes
-              </span>
-              <Button
-                variant="brand-secondary"
-                icon={<FeatherPlus />}
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
-              >
-                Add Note
-              </Button>
-            </div>
-            <div className="flex w-full flex-col items-start gap-4">
-              <div className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
-                <Avatar image="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde">
-                  J
-                </Avatar>
-                <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-body-bold font-body-bold text-default-font">
-                      John Smith
-                    </span>
-                    <Badge>Fact Checker</Badge>
-                  </div>
-                  <span className="text-body font-body text-default-font">
-                    Original source verified through archived timestamps and
-                    digital signatures. Content appears to be authentic based on
-                    multiple verification methods.
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="neutral-tertiary"
-                      size="small"
-                      icon={<FeatherThumbsUp />}
-                      onClick={(
-                        event: React.MouseEvent<HTMLButtonElement>
-                      ) => {}}
-                    >
-                      Helpful (24)
-                    </Button>
-                    <Button
-                      variant="neutral-tertiary"
-                      size="small"
-                      onClick={(
-                        event: React.MouseEvent<HTMLButtonElement>
-                      ) => {}}
-                    >
-                      Reply
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <div className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
-                <Avatar image="https://images.unsplash.com/photo-1494790108377-be9c29b29330">
-                  A
-                </Avatar>
-                <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-body-bold font-body-bold text-default-font">
-                      Alice Chen
-                    </span>
-                    <Badge variant="warning">Researcher</Badge>
-                  </div>
-                  <span className="text-body font-body text-default-font">
-                    Additional context: Similar claims appeared in private
-                    forums 24 hours before the viral spread, but couldn&#39;t be
-                    independently verified.
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="neutral-tertiary"
-                      size="small"
-                      icon={<FeatherThumbsUp />}
-                      onClick={(
-                        event: React.MouseEvent<HTMLButtonElement>
-                      ) => {}}
-                    >
-                      Helpful (18)
-                    </Button>
-                    <Button
-                      variant="neutral-tertiary"
-                      size="small"
-                      onClick={(
-                        event: React.MouseEvent<HTMLButtonElement>
-                      ) => {}}
-                    >
-                      Reply
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Loading Modal */}
