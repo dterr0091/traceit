@@ -18,7 +18,9 @@
     "axios": "^1.6.0",
     "node-fetch": "^3.3.2",
     "openai": "^4.28.0",
-    "puppeteer-core": "^22.7.0",
+    "puppeteer-core": "^22.7.0"
+  },
+  "optionalDependencies": {
     "yt-dlp-exec": "^1.0.0"
   },
   "devDependencies": {
