@@ -45,5 +45,9 @@
     "typescript": "^5.2.2",
     "vite": "^5.0.0",
     "vitest": "^3.1.2"
+  },
+  "resolutions": {
+    "puppeteer-core": "^10.1.0",
+    "chrome-aws-lambda": "^10.1.0"
   }
 }
