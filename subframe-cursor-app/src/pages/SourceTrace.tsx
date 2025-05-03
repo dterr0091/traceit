@@ -71,38 +71,24 @@ function SourceTrace() {
       }));
       setCommunityNotes(updatedNotes);
 
-      // Combine original sources and viral points for display
-      const allResults = [
-        ...originalSources.map((result, index) => ({
-          title: result.title,
-          platform: result.platform,
-          timestamp: result.timestamp,
-          viralityScore: 'High' as const,
-          platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
-          isOriginalSource: true,
-          sourceIndex: index + 1
-        })),
-        ...viralPoints.map(result => ({
-          title: result.title,
-          platform: result.platform,
-          timestamp: result.timestamp,
-          viralityScore: result.engagement_metrics?.views && result.engagement_metrics.views > 10000 ? 'High' as const : 
-                        result.engagement_metrics?.views && result.engagement_metrics.views > 1000 ? 'Medium' as const : 'Low' as const,
-          platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
-                       "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
-          isOriginalSource: false
-        }))
-      ];
+      // Only use viralPoints for the results table
+      const viralResults = viralPoints.map(result => ({
+        title: result.title,
+        platform: result.platform,
+        timestamp: result.timestamp,
+        viralityScore: result.engagement_metrics?.views && result.engagement_metrics.views > 10000 ? 'High' as const : 
+                      result.engagement_metrics?.views && result.engagement_metrics.views > 1000 ? 'Medium' as const : 'Low' as const,
+        platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                     result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                     result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                     "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
+        isOriginalSource: false
+      }));
 
       setSearchState(prev => ({
         ...prev,
         isLoading: false,
-        results: allResults
+        results: viralResults
       }));
     } catch (error) {
       setSearchState(prev => ({
