@@ -14,8 +14,8 @@ A web application that traces the origin and spread of content across multiple p
   - "Trace" button click
   - Enter key press
 - **Search Scope**:
-  - Initial platforms: Reddit, Twitter, Instagram, YouTube, News sources
-  - Extensible to additional platforms
+  - Unified search across web, social media, and news sources via Perplexity Sonar API
+  - Default limit of 4 surfaced URLs per query
 
 ### 2. Source Analysis
 - **AI Engine**: OpenAI integration for source evaluation
@@ -65,13 +65,9 @@ A web application that traces the origin and spread of content across multiple p
   - Cached content
 
 ### External Integrations
-- OpenAI API
-- Platform APIs:
-  - Reddit API
-  - Twitter API
-  - Instagram API
-  - YouTube API
-  - News APIs
+- **OpenAI API**: Core LLM for multimodal understanding and orchestration
+- **Perplexity Sonar API**: Unified retrieval layer for real-time web, social, and news content
+- **Diffbot API**: Optional full-text extraction for selected URLs
 
 ## Development Approach
 
@@ -100,18 +96,19 @@ A web application that traces the origin and spread of content across multiple p
 ### Phase 1
 1. Basic search functionality
 2. OpenAI integration
-3. Community notes system
-4. Basic UI implementation
+3. Perplexity Sonar API integration
+4. Community notes system
+5. Basic UI implementation
 
 ### Phase 2
 1. Data visualization
 2. Advanced filtering
 3. Sorting capabilities
 4. Enhanced moderation tools
+5. Cost/latency optimization (caching Sonar results, selective Diffbot fetching)
 
 ## Future Considerations
 - User roles and permissions
 - Advanced analytics
-- Additional platform integrations
 - Machine learning for source verification
 - Real-time content tracking 
