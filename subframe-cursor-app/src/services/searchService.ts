@@ -1,7 +1,7 @@
 import { SearchResult, SearchState } from '../types/sourceTrace';
 
 export class SearchService {
-  private apiUrl = process.env.VITE_API_URL ?? 'http://localhost:3000/api';
+  private apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
 
   async search(query: string): Promise<SearchResult[]> {
     try {

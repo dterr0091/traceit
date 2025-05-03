@@ -4,5 +4,18 @@
       "PUPPETEER_EXECUTABLE_PATH": "/var/task/node_modules/@sparticuz/chromium/bin/chromium"
     }
   },
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "version": 2,
+  "builds": [
+    {
+      "src": "dist/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/index.js"
+    }
+  ]
 } 
