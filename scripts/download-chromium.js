@@ -15,14 +15,16 @@ async function downloadChromium() {
     return;
   }
 
-  console.log('Downloading Chromium...');
+  console.log('Attempting to download Chromium...');
   try {
     const { executablePath } = await chrome.executablePath;
     console.log('Chromium downloaded successfully to:', executablePath);
   } catch (error) {
-    console.error('Failed to download Chromium:', error);
-    process.exit(1);
+    console.warn('Could not download Chromium. Some features may be limited:', error);
+    // Don't exit with error, just continue
   }
 }
 
-downloadChromium().catch(console.error); 
+downloadChromium().catch(error => {
+  console.warn('Chromium download failed, continuing without it:', error);
+}); 

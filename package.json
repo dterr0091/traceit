@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "ts-node src/cli.ts",
+    "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node src/cli.ts",
     "test": "jest --coverage",
     "lint": "eslint 'src/**/*.ts'",
     "postinstall": "node scripts/download-chromium.js",
@@ -16,7 +16,6 @@
     "@postlight/mercury-parser": "^2.2.0",
     "axios": "^1.6.0",
     "chrome-aws-lambda": "^10.1.0",
-    "dotenv": "^16.3.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.28.0",
     "puppeteer-core": "^22.7.0",
@@ -27,6 +26,7 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "dotenv": "^16.5.0",
     "eslint": "^8.0.0",
     "jest": "^29.5.0",
     "nock": "^13.5.0",
@@ -37,4 +37,4 @@
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}

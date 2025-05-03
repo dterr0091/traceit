@@ -1,7 +1,3 @@
-# Environment variables
-.env
-.env.*
-
 # Python
 __pycache__/
 *.py[cod]
@@ -24,10 +20,6 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
-venv/
-env/
-ENV/
 
 # IDE
 .idea/
@@ -71,11 +63,7 @@ dist/
 build/
 coverage/
 
-# Environment variables
-.env.local
-.env.*.local
-.env.test
-.env.production
+
 
 # Chromium downloads
 .local-chromium/

@@ -16,7 +16,7 @@ export class OpenAIAnalysisService {
   private openai: OpenAI | null;
 
   constructor() {
-    const apiKey = import.meta.env.OPENAI_API_KEY;
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
     if (!apiKey) {
       console.warn('OpenAI API key not found. Some features may be limited.');
       this.openai = null;
