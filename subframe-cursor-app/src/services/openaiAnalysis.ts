@@ -23,6 +23,7 @@ export class OpenAIAnalysisService {
     } else {
       this.openai = new OpenAI({
         apiKey: apiKey,
+        dangerouslyAllowBrowser: true
       });
     }
   }

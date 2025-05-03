@@ -18,6 +18,7 @@ import { FeatherLogOut } from "@subframe/core";
 import * as SubframeCore from "@subframe/core";
 import { Avatar } from "../components/Avatar";
 import { TopbarWithRightNav } from "../components/TopbarWithRightNav";
+import { useAuth0 } from "@auth0/auth0-react";
 
 interface DefaultPageLayoutRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -32,6 +33,12 @@ const DefaultPageLayoutRoot = React.forwardRef<
   { children, className, ...otherProps }: DefaultPageLayoutRootProps,
   ref
 ) {
+  const { logout, user } = useAuth0();
+
+  const handleLogout = () => {
+    logout({ logoutParams: { returnTo: window.location.origin } });
+  };
+
   return (
     <div
       className={SubframeUtils.twClassNames(
@@ -55,8 +62,8 @@ const DefaultPageLayoutRoot = React.forwardRef<
             </div>
             <SubframeCore.DropdownMenu.Root>
               <SubframeCore.DropdownMenu.Trigger asChild={true}>
-                <Avatar image="https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/fychrij7dzl8wgq2zjq9.avif">
-                  A
+                <Avatar image={user?.picture || "https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/fychrij7dzl8wgq2zjq9.avif"}>
+                  {user?.name?.charAt(0) || "A"}
                 </Avatar>
               </SubframeCore.DropdownMenu.Trigger>
               <SubframeCore.DropdownMenu.Portal>
@@ -73,7 +80,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                     <DropdownMenu.DropdownItem icon={<FeatherSettings />}>
                       Settings
                     </DropdownMenu.DropdownItem>
-                    <DropdownMenu.DropdownItem icon={<FeatherLogOut />}>
+                    <DropdownMenu.DropdownItem icon={<FeatherLogOut />} onClick={handleLogout}>
                       Log out
                     </DropdownMenu.DropdownItem>
                   </DropdownMenu>

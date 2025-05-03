@@ -28,7 +28,7 @@ A web application that traces the origin and spread of content across multiple p
   - Visit counts
   - Platform-specific metrics
 
-### 3. Community Notes System
+### 3. Change Requests System
 - **Features**:
   - Open contribution (any user can add notes)
   - Voting system
@@ -37,6 +37,8 @@ A web application that traces the origin and spread of content across multiple p
   - Majority voting determines highlighted notes
   - Close votes result in no highlighting
   - Significant vote differences trigger highlighting
+- **Additional Features**:
+  - Change requests
 
 ## Technical Architecture
 
@@ -97,7 +99,7 @@ A web application that traces the origin and spread of content across multiple p
 1. Basic search functionality
 2. OpenAI integration
 3. Perplexity Sonar API integration
-4. Community notes system
+4. Change requests system
 5. Basic UI implementation
 
 ### Phase 2

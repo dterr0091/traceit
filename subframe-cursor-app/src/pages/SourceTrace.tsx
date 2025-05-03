@@ -22,11 +22,18 @@ import { FeatherUpload } from "@subframe/core";
 import { mockSearch, mockLoadingSteps, mockCommunityNotes } from '../services/mockData';
 import { SearchResult, SearchState, CommunityNote, PerplexitySearchResult, SearchInput } from '../types/sourceTrace';
 import { SearchService } from '../services';
+import { ShareModal } from "@/ui/components/ShareModal";
 
 function SourceTrace() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [showRequestTextArea, setShowRequestTextArea] = useState(false);
+  const [requestText, setRequestText] = useState("");
+  const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean; noteId: number | null }>({
+    isOpen: false,
+    noteId: null
+  });
   const [searchState, setSearchState] = useState<SearchState>({
     isLoading: false,
     currentStep: '',
@@ -36,6 +43,7 @@ function SourceTrace() {
   const [communityNotes, setCommunityNotes] = useState<CommunityNote[]>(mockCommunityNotes);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchService = useRef<SearchService>(new SearchService());
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const handleSearch = async () => {
     if (!searchQuery && uploadedImages.length === 0) {
@@ -155,6 +163,47 @@ function SourceTrace() {
     setUploadedImages([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleShareClick = () => {
+    setShowShareModal(true);
+  };
+
+  const handleSubmitRequest = () => {
+    if (!requestText.trim()) return;
+    
+    const newNote: CommunityNote = {
+      id: Date.now(), // Using timestamp as number ID
+      user: {
+        name: "You",
+        avatar: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
+        badge: "Contributor"
+      },
+      content: requestText,
+      helpfulCount: 0,
+      timestamp: new Date().toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    };
+
+    setCommunityNotes(prevNotes => [newNote, ...prevNotes]);
+    setShowRequestTextArea(false);
+    setRequestText("");
+  };
+
+  const handleDeleteNote = (noteId: number) => {
+    setDeleteModalState({ isOpen: true, noteId });
+  };
+
+  const confirmDelete = () => {
+    if (deleteModalState.noteId) {
+      setCommunityNotes(prevNotes => prevNotes.filter(note => note.id !== deleteModalState.noteId));
+      setDeleteModalState({ isOpen: false, noteId: null });
     }
   };
 
@@ -383,7 +432,7 @@ function SourceTrace() {
                 </span>
                 <IconButton
                   icon={<FeatherShare2 />}
-                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                  onClick={handleShareClick}
                 />
               </div>
               <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
@@ -490,17 +539,48 @@ function SourceTrace() {
               <div className="flex w-full flex-col items-start gap-4">
                 <div className="flex w-full items-center justify-between">
                   <span className="text-heading-3 font-heading-3 text-default-font">
-                    Community Notes
+                    Change Requests
                   </span>
                   <Button
                     variant="brand-secondary"
                     icon={<FeatherPlus />}
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                    onClick={() => setShowRequestTextArea(!showRequestTextArea)}
                   >
-                    Add Note
+                    Add Request
                   </Button>
                 </div>
                 <div className="flex w-full flex-col items-start gap-4">
+                  {showRequestTextArea && (
+                    <div className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
+                      <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
+                        <textarea
+                          className="w-full h-32 p-2 rounded-md border border-solid border-neutral-border text-body font-body text-default-font"
+                          placeholder="Enter your change request here..."
+                          value={requestText}
+                          onChange={(e) => setRequestText(e.target.value)}
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="brand-secondary"
+                            size="small"
+                            onClick={handleSubmitRequest}
+                          >
+                            Submit
+                          </Button>
+                          <Button
+                            variant="neutral-tertiary"
+                            size="small"
+                            onClick={() => {
+                              setShowRequestTextArea(false);
+                              setRequestText("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {communityNotes.map((note) => (
                     <div key={note.id} className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
                       <Avatar image={note.user.avatar}>
@@ -534,6 +614,15 @@ function SourceTrace() {
                           >
                             Reply
                           </Button>
+                          {note.user.name === "You" && (
+                            <Button
+                              variant="destructive-primary"
+                              size="small"
+                              onClick={() => handleDeleteNote(note.id)}
+                            >
+                              Delete
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -545,6 +634,38 @@ function SourceTrace() {
             renderEmptyState()
           )}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteModalState.isOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex flex-col items-start gap-4">
+                <span className="text-heading-3 font-heading-3 text-default-font">
+                  Are you sure?
+                </span>
+                <span className="text-body font-body text-default-font">
+                  This cannot be undone.
+                </span>
+                <div className="flex items-center gap-2 w-full justify-end">
+                  <Button
+                    variant="neutral-tertiary"
+                    size="small"
+                    onClick={() => setDeleteModalState({ isOpen: false, noteId: null })}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive-primary"
+                    size="small"
+                    onClick={confirmDelete}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Loading Modal */}
         {searchState.isLoading && (
@@ -576,6 +697,13 @@ function SourceTrace() {
           </div>
         )}
       </div>
+      {showShareModal && searchState.results && (
+        <ShareModal
+          originalSource={searchState.results[0]}
+          viralPoints={searchState.results.slice(1, 4)}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </DefaultPageLayout>
   );
 }

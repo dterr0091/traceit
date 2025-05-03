@@ -12,43 +12,48 @@ const PLATFORM_ICONS = {
 // Mock search results
 export const mockSearchResults: SearchResult[] = [
   {
-    title: "Tech Workforce Reduction",
+    title: "Breaking News: Major Tech Company Announcement",
     platform: "Twitter",
-    timestamp: "March 15, 9:00 AM",
+    timestamp: "2024-03-15T10:30:00Z",
     viralityScore: "High",
-    platformIcon: PLATFORM_ICONS.twitter
+    platformIcon: "twitter",
+    isOriginalSource: true
   },
   {
-    title: "AI Impact on Tech Jobs",
+    title: "Tech Industry Analysis",
+    platform: "LinkedIn",
+    timestamp: "2024-03-15T09:15:00Z",
+    viralityScore: "Medium",
+    platformIcon: "linkedin",
+    isOriginalSource: false
+  },
+  {
+    title: "Tech News Roundup",
     platform: "Reddit",
-    timestamp: "March 15, 10:30 AM",
-    viralityScore: "Medium",
-    platformIcon: PLATFORM_ICONS.reddit
-  },
-  {
-    title: "Industry Workforce Trends",
-    platform: "Instagram",
-    timestamp: "March 15, 2:15 PM",
+    timestamp: "2024-03-15T08:45:00Z",
     viralityScore: "Low",
-    platformIcon: PLATFORM_ICONS.instagram
+    platformIcon: "reddit",
+    isOriginalSource: false
   },
   {
-    title: "Tech Layoffs Analysis",
-    platform: "YouTube",
-    timestamp: "March 15, 4:45 PM",
+    title: "Industry Expert Commentary",
+    platform: "Twitter",
+    timestamp: "2024-03-15T07:30:00Z",
     viralityScore: "High",
-    platformIcon: PLATFORM_ICONS.youtube
+    platformIcon: "twitter",
+    isOriginalSource: false
   },
   {
-    title: "Tech Industry Report",
-    platform: "News",
-    timestamp: "March 15, 6:30 PM",
+    title: "Tech Community Discussion",
+    platform: "LinkedIn",
+    timestamp: "2024-03-15T06:15:00Z",
     viralityScore: "Medium",
-    platformIcon: PLATFORM_ICONS.news
+    platformIcon: "linkedin",
+    isOriginalSource: false
   }
 ];
 
-// Mock community notes
+// Mock change requests
 export const mockCommunityNotes = [
   {
     id: 1,
