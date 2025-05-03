@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
     "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node src/cli.ts",
     "test": "jest --coverage",
     "lint": "eslint 'src/**/*.ts'",
