@@ -20,7 +20,8 @@ import { FeatherImage } from "@subframe/core";
 import { FeatherLoader } from "@subframe/core";
 import { FeatherUpload } from "@subframe/core";
 import { mockSearch, mockLoadingSteps, mockCommunityNotes } from '../services/mockData';
-import { SearchResult, SearchState, CommunityNote } from '../types/sourceTrace';
+import { SearchResult, SearchState, CommunityNote, PerplexitySearchResult, SearchInput } from '../types/sourceTrace';
+import { SearchService } from '../services';
 
 function SourceTrace() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -34,6 +35,7 @@ function SourceTrace() {
   });
   const [communityNotes, setCommunityNotes] = useState<CommunityNote[]>(mockCommunityNotes);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchService = useRef<SearchService>(new SearchService());
 
   const handleSearch = async () => {
     if (!searchQuery && uploadedImages.length === 0) {
@@ -43,19 +45,21 @@ function SourceTrace() {
 
     setSearchState({
       isLoading: true,
-      currentStep: mockLoadingSteps[0],
+      currentStep: "Analyzing input...",
       error: null,
       results: null
     });
 
     try {
-      // Simulate different steps
-      for (const step of mockLoadingSteps) {
-        setSearchState(prev => ({ ...prev, currentStep: step }));
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      // Prepare search input
+      const searchInput: SearchInput = {
+        text: searchQuery,
+        image_urls: uploadedImages,
+        max_results: 4
+      };
 
-      const results = await mockSearch(searchQuery, uploadedImages);
+      // Perform search
+      const results = await searchService.current.search(searchInput);
       
       // Update community notes based on search results
       const updatedNotes = mockCommunityNotes.map(note => ({
@@ -70,7 +74,17 @@ function SourceTrace() {
       setSearchState(prev => ({
         ...prev,
         isLoading: false,
-        results: results || []
+        results: results.map((result: PerplexitySearchResult) => ({
+          title: result.title,
+          platform: result.platform,
+          timestamp: result.timestamp,
+          viralityScore: result.engagement_metrics.views && result.engagement_metrics.views > 10000 ? 'High' : 
+                        result.engagement_metrics.views && result.engagement_metrics.views > 1000 ? 'Medium' : 'Low',
+          platformIcon: result.platform === 'Twitter' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                       result.platform === 'Facebook' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                       result.platform === 'Instagram' ? "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9" :
+                       "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9"
+        }))
       }));
     } catch (error) {
       setSearchState(prev => ({
