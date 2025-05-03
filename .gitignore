@@ -72,4 +72,8 @@ coverage/
 .nyc_output/
 
 # TypeScript
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# Environment variables
+.env
+server/.env 
