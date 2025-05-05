@@ -1,25 +1,12 @@
 {
   "build": {
     "env": {
-      "PUPPETEER_EXECUTABLE_PATH": "/var/task/node_modules/@sparticuz/chromium/bin/chromium",
       "NODE_ENV": "production"
     }
   },
-  "outputDirectory": "dist",
+  "outputDirectory": "subframe-cursor-app/dist",
   "version": 2,
-  "builds": [
-    {
-      "src": "src/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "src/index.ts"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "cd subframe-cursor-app && npm install && npm run build",
+  "installCommand": "cd subframe-cursor-app && npm install",
+  "framework": "vite"
 } 

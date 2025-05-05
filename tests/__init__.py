@@ -1,3 +1,0 @@
-"""
-Source Trace test package.
-""" 
