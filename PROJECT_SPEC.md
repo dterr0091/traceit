@@ -1,7 +1,44 @@
-# Source Trace Project Specification
+# Trace Project Specification
 
-## Overview
-A web application that traces the origin and spread of content across multiple platforms, using AI to evaluate and determine the most likely original source and key viral points.
+## 1. Overview
+* Trace identifies the **earliest verifiable origin** of text, image, audio, or video content.
+* Request types → credit weights:  
+  * **Light (1 credit):** URL / ≤500‑char text  
+  * **Heavy (3 credits):** image or audio‑only  
+  * **Video (8 credits):** clips or YouTube links (paid tiers only)
+
+## 2. High‑level flow
+1. **Ingest** – Accept URL, raw text, image, audio, or video.  
+2. **Canonical hash** – Generate SHA‑256 (text) or perceptual hash (media) → Redis cache lookup.  
+3. **Router** –  
+   * Run cheap lexical + pgvector search.  
+   * *Only* call **Perplexity API** if combined recall < 3 hits OR confidence < 0.80.  
+4. **Ranker** – Merge local + remote hits, score by timestamp × engagement × similarity.  
+5. **Lineage write** – Store origin edge immediately; fan‑out multi‑hop graph in nightly batch job.  
+6. **Return** JSON with: origin object, spread table, confidence, credit burn.
+
+## 3. Media specifics
+* **Image:** Brave Search API fallback → TinEye bulk batch each hour (deduped Bloom filter).  
+* **Audio:** Self‑hosted Whisper *tiny‑en* CPU service, fallback to ACRCloud fingerprint for music.  
+* **Video:**  
+  1. Audio fingerprint first (fast).  
+  2. If inconclusive, push Job ID to **batch GPU queue** (RunPod spot).  
+  3. FFmpeg grabs 3 keyframes → CLIP embeddings → vector search.  
+  4. Results streamed back via SSE/WebSocket when batch (~60 s) completes.
+
+## 4. Caching & cost guards
+* Redis (Upstash) for Perplexity + origin cache (TTL 30–90 d).  
+* Batch GPU jobs & TinEye calls reduce per‑video COGS to ≈ $0.03–0.04.  
+* Credit ledger in Postgres (Supabase) enforces free‑tier + paid quotas.
+
+## 5. Logical build order (milestones)
+1. Auth & credit meter, pgvector search, Redis + Perplexity router.  
+2. Image reverse flow (Brave) + TinEye batch.  
+3. Whisper service + audio pipeline.  
+4. GPU batch infra (RunPod) + FFmpeg keyframe sampler.  
+5. Video pipeline integration & SSE progress UI.  
+6. Nightly lineage graph (Neo4j Aura) & spread‑view endpoint.  
+7. Stripe usage billing hooks, push/email notifications, prod hardening.
 
 ## Core Features
 
