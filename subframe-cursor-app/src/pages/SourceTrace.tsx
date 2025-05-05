@@ -417,210 +417,204 @@ function SourceTrace() {
             </Button>
           </div>
         </div>
-        <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-8 px-6 py-6 overflow-auto">
-          {searchState.isLoading ? (
-            renderSkeletonContent()
-          ) : searchState.results ? (
-            <div className="flex w-full flex-col items-start gap-4">
-              <div className="flex w-full items-center justify-between">
-                <span className="text-heading-2 font-heading-2 text-default-font">
-                  Source Trace
-                </span>
-                <IconButton
-                  icon={<FeatherShare2 />}
-                  onClick={handleShareClick}
-                />
-              </div>
-              <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
-                <div className="flex w-full items-start gap-4">
-                  <Avatar
-                    size="large"
-                    image={searchState.results?.[0]?.platformIcon || "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9"}
-                    square={true}
-                  >
-                    {searchState.results?.[0]?.platform.charAt(0) || "A"}
-                  </Avatar>
-                  <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
-                    <span className="text-heading-2 font-heading-2 text-default-font mobile:h-auto mobile:w-auto mobile:flex-none">
-                      {searchState.results?.[0]?.title || "Breaking: Tech Workforce Reduction"}
-                    </span>
-                    <div className="flex w-full flex-col items-start gap-2">
-                      <div className="flex w-full items-center gap-2">
-                        <span className="text-body-bold font-body-bold text-default-font">
-                          {searchState.results?.[0]?.platform || "TechCrunch"}
-                        </span>
-                        <Badge>Original Source</Badge>
-                      </div>
-                      <span className="text-body font-body text-default-font">
-                        {searchState.results?.[0]?.title 
-                          ? `Breaking: ${searchState.results[0].title} - Analysis and impact on the tech industry`
-                          : "Breaking: Major tech companies announce significant workforce reductions as AI integration accelerates"}
+        <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-8">
+          <div className="flex w-full flex-col items-start gap-4">
+            <div className="flex w-full items-center justify-between">
+              <span className="text-heading-2 font-heading-2 text-default-font">
+                Source Trace
+              </span>
+              <IconButton
+                icon={<FeatherShare2 />}
+                onClick={handleShareClick}
+              />
+            </div>
+            <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background p-6">
+              <div className="flex w-full items-start gap-4">
+                <Avatar
+                  size="large"
+                  image={searchState.results?.[0]?.platformIcon || "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9"}
+                  square={true}
+                >
+                  {searchState.results?.[0]?.platform.charAt(0) || "A"}
+                </Avatar>
+                <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
+                  <span className="text-heading-2 font-heading-2 text-default-font mobile:h-auto mobile:w-auto mobile:flex-none">
+                    {searchState.results?.[0]?.title || "Breaking: Tech Workforce Reduction"}
+                  </span>
+                  <div className="flex w-full flex-col items-start gap-2">
+                    <div className="flex w-full items-center gap-2">
+                      <span className="text-body-bold font-body-bold text-default-font">
+                        {searchState.results?.[0]?.platform || "TechCrunch"}
                       </span>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <FeatherClock className="text-caption font-caption text-subtext-color" />
-                          <span className="text-caption font-caption text-subtext-color">
-                            {searchState.results?.[0]?.timestamp || "Jan 15, 2024 • 9:45 AM EST"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <FeatherGlobe className="text-caption font-caption text-subtext-color" />
-                          <span className="text-caption font-caption text-subtext-color">
-                            Emily Rodriguez
-                          </span>
-                        </div>
+                      <Badge>Original Source</Badge>
+                    </div>
+                    <span className="text-body font-body text-default-font">
+                      {searchState.results?.[0]?.title 
+                        ? `Breaking: ${searchState.results[0].title} - Analysis and impact on the tech industry`
+                        : "Breaking: Major tech companies announce significant workforce reductions as AI integration accelerates"}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <FeatherClock className="text-caption font-caption text-subtext-color" />
+                        <span className="text-caption font-caption text-subtext-color">
+                          {searchState.results?.[0]?.timestamp || "Jan 15, 2024 • 9:45 AM EST"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FeatherGlobe className="text-caption font-caption text-subtext-color" />
+                        <span className="text-caption font-caption text-subtext-color">
+                          Emily Rodriguez
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex w-full flex-col items-start gap-4">
-                <div className="flex w-full items-center justify-between">
-                  <span className="text-heading-3 font-heading-3 text-default-font">
-                    Virality
-                  </span>
-                </div>
-                <Table
-                  header={
-                    <Table.HeaderRow>
-                      <Table.HeaderCell>Title</Table.HeaderCell>
-                      <Table.HeaderCell>Platform</Table.HeaderCell>
-                      <Table.HeaderCell>Time</Table.HeaderCell>
-                      <Table.HeaderCell>Virality Score</Table.HeaderCell>
-                    </Table.HeaderRow>
-                  }
-                >
-                  {searchState.results?.map((result, index) => (
-                    <Table.Row key={`result-${result.title}-${index}`}>
-                      <Table.Cell>
+            </div>
+            <div className="flex w-full flex-col items-start gap-4">
+              <div className="flex w-full items-center justify-between">
+                <span className="text-heading-3 font-heading-3 text-default-font">
+                  Virality
+                </span>
+              </div>
+              <Table
+                header={
+                  <Table.HeaderRow>
+                    <Table.HeaderCell>Title</Table.HeaderCell>
+                    <Table.HeaderCell>Platform</Table.HeaderCell>
+                    <Table.HeaderCell>Time</Table.HeaderCell>
+                    <Table.HeaderCell>Virality Score</Table.HeaderCell>
+                  </Table.HeaderRow>
+                }
+              >
+                {searchState.results?.map((result, index) => (
+                  <Table.Row key={`result-${result.title}-${index}`}>
+                    <Table.Cell>
+                      <span className="text-body-bold font-body-bold text-default-font">
+                        {result.title}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div className="flex items-center gap-2">
+                        <Avatar
+                          size="small"
+                          image={result.platformIcon}
+                        >
+                          {result.platform.charAt(0)}
+                        </Avatar>
                         <span className="text-body-bold font-body-bold text-default-font">
-                          {result.title}
+                          {result.platform}
                         </span>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <div className="flex items-center gap-2">
-                          <Avatar
-                            size="small"
-                            image={result.platformIcon}
-                          >
-                            {result.platform.charAt(0)}
-                          </Avatar>
-                          <span className="text-body-bold font-body-bold text-default-font">
-                            {result.platform}
-                          </span>
-                        </div>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <span className="text-body font-body text-default-font">
-                          {result.timestamp}
-                        </span>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Badge variant={result.viralityScore === 'High' ? 'success' : result.viralityScore === 'Medium' ? 'warning' : 'neutral'}>
-                          {result.viralityScore}
-                        </Badge>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table>
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <span className="text-body font-body text-default-font">
+                        {result.timestamp}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge variant={result.viralityScore === 'High' ? 'success' : result.viralityScore === 'Medium' ? 'warning' : 'neutral'}>
+                        {result.viralityScore}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table>
+            </div>
+            <div className="flex w-full flex-col items-start gap-4">
+              <div className="flex w-full items-center justify-between">
+                <span className="text-heading-3 font-heading-3 text-default-font">
+                  Change Requests
+                </span>
+                <Button
+                  variant="brand-secondary"
+                  icon={<FeatherPlus />}
+                  onClick={() => setShowRequestTextArea(!showRequestTextArea)}
+                >
+                  Add Request
+                </Button>
               </div>
               <div className="flex w-full flex-col items-start gap-4">
-                <div className="flex w-full items-center justify-between">
-                  <span className="text-heading-3 font-heading-3 text-default-font">
-                    Change Requests
-                  </span>
-                  <Button
-                    variant="brand-secondary"
-                    icon={<FeatherPlus />}
-                    onClick={() => setShowRequestTextArea(!showRequestTextArea)}
-                  >
-                    Add Request
-                  </Button>
-                </div>
-                <div className="flex w-full flex-col items-start gap-4">
-                  {showRequestTextArea && (
-                    <div className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
-                      <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
-                        <textarea
-                          className="w-full h-32 p-2 rounded-md border border-solid border-neutral-border text-body font-body text-default-font"
-                          placeholder="Enter your change request here..."
-                          value={requestText}
-                          onChange={(e) => setRequestText(e.target.value)}
-                        />
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="brand-secondary"
-                            size="small"
-                            onClick={handleSubmitRequest}
-                          >
-                            Submit
-                          </Button>
-                          <Button
-                            variant="neutral-tertiary"
-                            size="small"
-                            onClick={() => {
-                              setShowRequestTextArea(false);
-                              setRequestText("");
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
+                {showRequestTextArea && (
+                  <div className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
+                    <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
+                      <textarea
+                        className="w-full h-32 p-2 rounded-md border border-solid border-neutral-border text-body font-body text-default-font"
+                        placeholder="Enter your change request here..."
+                        value={requestText}
+                        onChange={(e) => setRequestText(e.target.value)}
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="brand-secondary"
+                          size="small"
+                          onClick={handleSubmitRequest}
+                        >
+                          Submit
+                        </Button>
+                        <Button
+                          variant="neutral-tertiary"
+                          size="small"
+                          onClick={() => {
+                            setShowRequestTextArea(false);
+                            setRequestText("");
+                          }}
+                        >
+                          Cancel
+                        </Button>
                       </div>
                     </div>
-                  )}
-                  {communityNotes.map((note) => (
-                    <div key={note.id} className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
-                      <Avatar image={note.user.avatar}>
-                        {note.user.name.charAt(0)}
-                      </Avatar>
-                      <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-body-bold font-body-bold text-default-font">
-                            {note.user.name}
-                          </span>
-                          <Badge variant={note.user.badge === "Fact Checker" ? "success" : "warning"}>
-                            {note.user.badge}
-                          </Badge>
-                        </div>
-                        <span className="text-body font-body text-default-font">
-                          {note.content}
+                  </div>
+                )}
+                {communityNotes.map((note) => (
+                  <div key={note.id} className="flex w-full items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 py-4">
+                    <Avatar image={note.user.avatar}>
+                      {note.user.name.charAt(0)}
+                    </Avatar>
+                    <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-body-bold font-body-bold text-default-font">
+                          {note.user.name}
                         </span>
-                        <div className="flex items-center gap-2">
+                        <Badge variant={note.user.badge === "Fact Checker" ? "success" : "warning"}>
+                          {note.user.badge}
+                        </Badge>
+                      </div>
+                      <span className="text-body font-body text-default-font">
+                        {note.content}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="neutral-tertiary"
+                          size="small"
+                          icon={<FeatherThumbsUp />}
+                          onClick={() => handleHelpfulClick(note.id)}
+                        >
+                          Helpful ({note.helpfulCount})
+                        </Button>
+                        <Button
+                          variant="neutral-tertiary"
+                          size="small"
+                          onClick={() => {}}
+                        >
+                          Reply
+                        </Button>
+                        {note.user.name === "You" && (
                           <Button
-                            variant="neutral-tertiary"
+                            variant="destructive-primary"
                             size="small"
-                            icon={<FeatherThumbsUp />}
-                            onClick={() => handleHelpfulClick(note.id)}
+                            onClick={() => handleDeleteNote(note.id)}
                           >
-                            Helpful ({note.helpfulCount})
+                            Delete
                           </Button>
-                          <Button
-                            variant="neutral-tertiary"
-                            size="small"
-                            onClick={() => {}}
-                          >
-                            Reply
-                          </Button>
-                          {note.user.name === "You" && (
-                            <Button
-                              variant="destructive-primary"
-                              size="small"
-                              onClick={() => handleDeleteNote(note.id)}
-                            >
-                              Delete
-                            </Button>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ) : (
-            renderEmptyState()
-          )}
+          </div>
         </div>
 
         {/* Delete Confirmation Modal */}

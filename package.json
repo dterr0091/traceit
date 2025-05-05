@@ -19,7 +19,9 @@
     "express": "^4.18.2",
     "node-fetch": "^3.3.2",
     "openai": "^4.28.0",
-    "puppeteer-core": "^22.7.0"
+    "puppeteer-core": "^22.7.0",
+    "redis": "^4.6.13",
+    "uuid": "^9.0.1"
   },
   "optionalDependencies": {
     "yt-dlp-exec": "^1.0.0"
@@ -28,6 +30,7 @@
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "dotenv": "^16.5.0",

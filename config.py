@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
 # Validate API keys
 settings = Settings()
+print(f"API KEY!!! { settings.OPENAI_API_KEY}")
 if not settings.OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is required. Please set it in your .env file.")
 if not settings.PERPLEXITY_API_KEY:
