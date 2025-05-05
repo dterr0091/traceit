@@ -2,44 +2,14 @@
   "name": "traceit",
   "version": "1.0.0",
   "description": "Content tracing and analysis platform",
-  "main": "dist/index.js",
+  "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json",
-    "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node src/cli.ts",
-    "test": "jest --coverage",
-    "lint": "eslint 'src/**/*.ts'",
-    "postinstall": "node scripts/download-chromium.js",
-    "download:chromium": "node scripts/download-chromium.js"
-  },
-  "dependencies": {
-    "@postlight/mercury-parser": "^2.2.0",
-    "@sparticuz/chromium": "^110.0.0",
-    "axios": "^1.6.0",
-    "express": "^4.18.2",
-    "node-fetch": "^3.3.2",
-    "openai": "^4.28.0",
-    "puppeteer-core": "^22.7.0",
-    "redis": "^4.6.13",
-    "uuid": "^9.0.1"
-  },
-  "optionalDependencies": {
-    "yt-dlp-exec": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/jest": "^29.5.0",
-    "@types/node": "^20.0.0",
-    "@types/uuid": "^9.0.7",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "dotenv": "^16.5.0",
-    "eslint": "^8.0.0",
-    "jest": "^29.5.0",
-    "nock": "^13.5.0",
-    "ts-jest": "^29.1.0",
-    "ts-node": "^10.9.0",
-    "typescript": "^5.0.0"
+    "build": "cd subframe-cursor-app && npm run build",
+    "dev": "cd subframe-cursor-app && npm run dev",
+    "test": "cd subframe-cursor-app && npm run test",
+    "lint": "cd subframe-cursor-app && npm run lint",
+    "preview": "cd subframe-cursor-app && npm run preview"
   },
   "engines": {
     "node": ">=18.0.0"
