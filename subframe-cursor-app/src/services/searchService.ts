@@ -1,27 +1,18 @@
 import { SearchResult, SearchState, PerplexitySearchResult } from '../types/sourceTrace';
-import { mockSearchResults } from './mockData';
 
 export class SearchService {
   private apiKey: string;
 
   constructor() {
-    // Use the Perplexity API directly rather than relying on an environment variable for the URL
     this.apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY || '';
     
     if (!this.apiKey) {
-      console.warn('Perplexity API key not found. Falling back to mock data.');
+      throw new Error('Perplexity API key not found. Please add VITE_PERPLEXITY_API_KEY to your environment variables.');
     }
   }
 
   async search(query: string): Promise<SearchResult[]> {
     try {
-      // If no API key, fall back to mock data
-      if (!this.apiKey) {
-        console.log('No API key available, using mock data');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return mockSearchResults;
-      }
-
       console.log('Making API request to Perplexity with query:', query);
       
       // Make a real API call to Perplexity
@@ -32,7 +23,7 @@ export class SearchService {
           'Authorization': `Bearer ${this.apiKey}`
         },
         body: JSON.stringify({
-          model: 'mistral-7b-instruct',
+          model: 'sonar',
           messages: [
             {
               role: 'system',
@@ -60,19 +51,16 @@ export class SearchService {
       return this.transformSearchResults(data, query);
     } catch (error) {
       console.error('Search error:', error);
-      // If the API call fails, fall back to mock data
-      return mockSearchResults;
+      throw error; // Re-throw the error instead of falling back to mock data
     }
   }
 
   private transformSearchResults(data: any, originalQuery: string): SearchResult[] {
-    // This transformation is for the Perplexity chat completions API
     try {
       const responseText = data.choices?.[0]?.message?.content || '';
       console.log('Processing response text:', responseText);
       
       // Extract information from the text response
-      // We'll create a simulated structured result from the text response
       const results: SearchResult[] = [];
       
       // Add an original source result
@@ -86,7 +74,6 @@ export class SearchService {
       });
       
       // Extract potential sources from the response text
-      // Simple parsing logic - we're looking for sentences that might contain source references
       const sentences = responseText.split(/[.!?]+/);
       let sourceCount = 0;
       
@@ -132,7 +119,7 @@ export class SearchService {
       return results;
     } catch (error) {
       console.error('Error transforming search results:', error);
-      return mockSearchResults;
+      throw error; // Re-throw the error instead of falling back to mock data
     }
   }
   

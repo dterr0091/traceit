@@ -42,12 +42,38 @@ function SourceTrace() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchService = useRef<SearchService>(new SearchService());
   const [showShareModal, setShowShareModal] = useState(false);
+  const [creditEstimate, setCreditEstimate] = useState<number>(0);
+
+  const calculateCredits = (query: string, images: string[]) => {
+    let credits = 0;
+    
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = query.match(urlRegex) || [];
+    
+    const youtubeRegex = /(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/g;
+    const youtubeLinks = query.match(youtubeRegex) || [];
+    
+    if (youtubeLinks.length > 0) {
+      credits += 8 * youtubeLinks.length;
+    } else if (urls.length > 0) {
+      credits += urls.length;
+    } else if (query.length > 0) {
+      credits += Math.ceil(query.length / 500);
+    }
+    
+    credits += images.length * 3;
+    
+    return credits;
+  };
 
   const handleSearch = async () => {
     if (!searchQuery && uploadedImages.length === 0) {
       setSearchState(prev => ({ ...prev, error: "Please enter a search query or upload an image" }));
       return;
     }
+
+    const credits = calculateCredits(searchQuery, uploadedImages);
+    setCreditEstimate(credits);
 
     setSearchState({
       isLoading: true,
@@ -57,7 +83,6 @@ function SourceTrace() {
     });
 
     try {
-      // Simulate progression through search steps
       setTimeout(() => {
         setSearchState(prev => ({
           ...prev,
@@ -72,20 +97,16 @@ function SourceTrace() {
         }));
       }, 3000);
 
-      // Prepare search input
       const searchInput: SearchInput = {
         query: searchQuery,
         images: uploadedImages
       };
 
-      // Perform search
       const results = await searchService.current.search(searchInput.query ?? '');
       
-      // Transform results into the expected format
       const originalSources = results.filter(result => result.isOriginalSource);
       const viralPoints = results.filter(result => !result.isOriginalSource);
 
-      // Update community notes based on search results
       const updatedNotes = mockCommunityNotes.map(note => ({
         ...note,
         content: note.content.replace(
@@ -98,7 +119,7 @@ function SourceTrace() {
       setSearchState(prev => ({
         ...prev,
         isLoading: false,
-        results: results, // Use the complete results array
+        results: results,
         currentStep: 'completed',
         error: null
       }));
@@ -107,7 +128,7 @@ function SourceTrace() {
       setSearchState(prev => ({
         ...prev,
         isLoading: false,
-        error: "An error occurred during the search. Please try again."
+        error: error instanceof Error ? error.message : "An error occurred during the search. Please try again."
       }));
     }
   };
@@ -128,7 +149,11 @@ function SourceTrace() {
         reader.onload = (e) => {
           newImages.push(e.target?.result as string);
           if (newImages.length === Math.min(files.length, remainingSlots)) {
-            setUploadedImages(prev => [...prev, ...newImages]);
+            setUploadedImages(prev => {
+              const updated = [...prev, ...newImages];
+              setCreditEstimate(calculateCredits(searchQuery, updated));
+              return updated;
+            });
           }
         };
         reader.readAsDataURL(file);
@@ -161,11 +186,16 @@ function SourceTrace() {
   };
 
   const clearImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      setCreditEstimate(calculateCredits(searchQuery, updated));
+      return updated;
+    });
   };
 
   const clearAllImages = () => {
     setUploadedImages([]);
+    setCreditEstimate(calculateCredits(searchQuery, []));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -179,7 +209,7 @@ function SourceTrace() {
     if (!requestText.trim()) return;
     
     const newNote: CommunityNote = {
-      id: Date.now(), // Using timestamp as number ID
+      id: Date.now(),
       user: {
         name: "You",
         avatar: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9",
@@ -396,13 +426,16 @@ function SourceTrace() {
                 <TextField
                   className="w-full"
                   label=""
-                  helpText=""
+                  helpText={creditEstimate > 0 ? `Estimated credits: ${creditEstimate}` : ""}
                   icon={<FeatherSearch />}
                 >
                   <TextField.Input
                     placeholder={`Search for content to trace or drag & drop images (${uploadedImages.length}/5)...`}
                     value={searchQuery}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value)}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setSearchQuery(event.target.value);
+                      setCreditEstimate(calculateCredits(event.target.value, uploadedImages));
+                    }}
                     onKeyPress={handleKeyPress}
                   />
                   <input
@@ -636,7 +669,6 @@ function SourceTrace() {
           )}
         </div>
 
-        {/* Delete Confirmation Modal */}
         {deleteModalState.isOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -668,7 +700,6 @@ function SourceTrace() {
           </div>
         )}
 
-        {/* Loading Modal */}
         {searchState.isLoading && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -691,7 +722,6 @@ function SourceTrace() {
           </div>
         )}
 
-        {/* Error Message */}
         {searchState.error && (
           <div className="w-full px-6 py-3 bg-error-50 text-error-700">
             {searchState.error}

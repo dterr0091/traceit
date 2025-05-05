@@ -6,6 +6,7 @@
   * **Light (1 credit):** URL / ≤500‑char text  
   * **Heavy (3 credits):** image or audio‑only  
   * **Video (8 credits):** clips or YouTube links (paid tiers only)
+* Trace supports "Search Bundles" where a user attaches up to 5 artifacts (URLs, files, or raw text) under one `jobId`. Each artifact is processed independently, then an Aggregator merges the extracted claims/entities into a unified query before the Router step.
 
 ## 2. High‑level flow
 1. **Ingest** – Accept URL, raw text, image, audio, or video.  
@@ -20,25 +21,35 @@
 ## 3. Media specifics
 * **Image:** Brave Search API fallback → TinEye bulk batch each hour (deduped Bloom filter).  
 * **Audio:** Self‑hosted Whisper *tiny‑en* CPU service, fallback to ACRCloud fingerprint for music.  
-* **Video:**  
-  1. Audio fingerprint first (fast).  
-  2. If inconclusive, push Job ID to **batch GPU queue** (RunPod spot).  
-  3. FFmpeg grabs 3 keyframes → CLIP embeddings → vector search.  
-  4. Results streamed back via SSE/WebSocket when batch (~60 s) completes.
+* **Video (composite‑aware pipeline):**  
+  1. **Audio fingerprint first** – rapid CPU check via self‑hosted Whisper *tiny‑en* + ACRCloud.  
+  2. **Always enqueue a 3‑frame batch job** (RunPod GPU) – frames sampled at 0 s, mid‑point, end via FFmpeg.  
+  3. **Visual origin detection** – CLIP embeddings → pgvector search.  
+  4. **Composite decision:**  
+     * If ≥ 2 of 3 frames match the **same external source** (CLIP dist ≤ 0.20) **and** that source's `channelId` ≠ audio's `channelId`, mark the video **`isComposite = true`**.  
+     * Store both `audioOrigin` and `visualOrigin` objects in the lineage graph.  
+  5. **UI contract:**  
+     * Return `origins: { audio?: OriginObj, visual?: OriginObj }`.  
+     * Front‑end shows stacked cards: "Visuals from X (date)" + "Voice‑over by Y (date)".  
+  6. **Cost guard:** If audio *and* first‑frame MD5 share the **same** channel, cancel GPU batch to save cost.
 
 ## 4. Caching & cost guards
 * Redis (Upstash) for Perplexity + origin cache (TTL 30–90 d).  
 * Batch GPU jobs & TinEye calls reduce per‑video COGS to ≈ $0.03–0.04.  
 * Credit ledger in Postgres (Supabase) enforces free‑tier + paid quotas.
+* Composite videos add ≤ $0.01 per search (extra CLIP embeds); hit rate ≈ 20 % of all video searches.
+* Each extra image artifact adds ≈ $0.001 (OCR + embed); negligible versus video COGS.
 
 ## 5. Logical build order (milestones)
 1. Auth & credit meter, pgvector search, Redis + Perplexity router.  
 2. Image reverse flow (Brave) + TinEye batch.  
-3. Whisper service + audio pipeline.  
-4. GPU batch infra (RunPod) + FFmpeg keyframe sampler.  
-5. Video pipeline integration & SSE progress UI.  
-6. Nightly lineage graph (Neo4j Aura) & spread‑view endpoint.  
-7. Stripe usage billing hooks, push/email notifications, prod hardening.
+3. Implement Session / Bundle model and Aggregator function (OCR + entity merge)
+4. Whisper service + audio pipeline.  
+5. GPU batch infra (RunPod) + FFmpeg keyframe sampler.  
+6. Video pipeline integration & SSE progress UI.  
+7. Implement composite‑media checker (audio vs visual origin reconciliation)
+8. Nightly lineage graph (Neo4j Aura) & spread‑view endpoint.  
+9. Stripe usage billing hooks, push/email notifications, prod hardening.
 
 ## Core Features
 
