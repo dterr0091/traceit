@@ -11,6 +11,7 @@ from ..services.audio_pipeline_service import AudioPipelineService
 from ..services.redis_service import RedisService
 from ..services.vector_service import VectorService
 from ..services.router_service import RouterService
+from ..services.credit_service import CreditService
 from ..utils.file_utils import delete_file_if_exists, upload_to_storage
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,7 @@ class VideoPipelineService:
         self.redis_service = RedisService()
         self.vector_service = VectorService()
         self.router_service = RouterService()
+        self.credit_service = CreditService()
         
         # Similarity threshold for matching frames
         self.clip_similarity_threshold = 0.20
@@ -428,3 +430,251 @@ class VideoPipelineService:
         final_hash = hashlib.sha256(combined.encode()).hexdigest()
         
         return final_hash 
+
+    async def process_video_with_progress(self,
+                                         file_path: str = None,
+                                         url: str = None,
+                                         job_id: str = None,
+                                         user_id: str = None) -> Dict[str, Any]:
+        """
+        Process a video with progress tracking for SSE.
+        
+        Args:
+            file_path: Path to local video file
+            url: URL to video file
+            job_id: Optional job ID for tracking
+            user_id: User ID for credit deduction
+            
+        Returns:
+            Dict containing processing results
+        """
+        if not file_path and not url:
+            return {"error": "Either file_path or url must be provided"}
+            
+        job_id = job_id or str(uuid4())
+        temp_files = []
+        
+        try:
+            # Initialize progress
+            await self._update_progress(job_id, "starting", "Initializing video processing", 0)
+            
+            # Download file if URL provided
+            if url and not file_path:
+                await self._update_progress(job_id, "downloading", "Downloading video from URL", 5)
+                file_path = await self.ffmpeg_service.download_video(url)
+                if not file_path:
+                    await self._update_progress(job_id, "error", "Failed to download video from URL", 0)
+                    return {"error": f"Failed to download video from URL: {url}"}
+                temp_files.append(file_path)
+            
+            # Get video metadata
+            await self._update_progress(job_id, "metadata", "Extracting video metadata", 10)
+            metadata = await self.ffmpeg_service.get_video_metadata(file_path)
+            
+            # Calculate video hash for cache lookup
+            await self._update_progress(job_id, "hashing", "Calculating video hash", 15)
+            video_hash = await self._get_video_hash(file_path)
+            
+            # Check cache
+            cached_result = await self.redis_service.get_cache(f"video:{video_hash}")
+            if cached_result:
+                logger.info(f"Cache hit for video hash: {video_hash}")
+                await self._update_progress(job_id, "complete", "Retrieved from cache", 100)
+                
+                # Store the final result
+                await self.redis_service.set_cache(
+                    f"video_result:{job_id}", 
+                    cached_result,
+                    ttl_days=1  # Short TTL for job results
+                )
+                
+                return {
+                    "job_id": job_id,
+                    "result": cached_result,
+                    "from_cache": True
+                }
+            
+            # Start audio processing
+            await self._update_progress(job_id, "audio_processing", "Processing audio track", 20)
+            audio_result = await self._process_audio_track(file_path, job_id)
+            
+            # Update progress
+            if audio_result.get("error"):
+                await self._update_progress(job_id, "audio_warning", f"Audio processing issue: {audio_result.get('error')}", 35)
+            else:
+                await self._update_progress(job_id, "audio_complete", "Audio processing complete", 40)
+            
+            # Start frame extraction
+            await self._update_progress(job_id, "extracting_frames", "Extracting video frames", 45)
+            frame_paths = await self.ffmpeg_service.extract_keyframes(file_path)
+            if not frame_paths:
+                await self._update_progress(job_id, "error", "Failed to extract frames from video", 45)
+                return {"error": "Failed to extract frames from video"}
+                
+            # Upload frames
+            await self._update_progress(job_id, "uploading_frames", "Uploading frames for analysis", 50)
+            frame_urls = []
+            for frame_path in frame_paths:
+                url = await upload_to_storage(frame_path)
+                if url:
+                    frame_urls.append(url)
+            
+            if not frame_urls:
+                await self._update_progress(job_id, "error", "Failed to upload frames for processing", 50)
+                return {"error": "Failed to upload frames for processing"}
+            
+            # Submit GPU job
+            await self._update_progress(job_id, "gpu_job_submit", "Submitting GPU job for frame analysis", 55)
+            batch_job = await self.runpod_service.submit_clip_embedding_job(frame_urls, job_id)
+            
+            if not batch_job.get("success", False):
+                await self._update_progress(job_id, "error", "Failed to submit GPU batch job", 55)
+                return {
+                    "error": "Failed to submit GPU batch job",
+                    "details": batch_job.get("error")
+                }
+            
+            # Wait for GPU job
+            await self._update_progress(job_id, "gpu_job_processing", "Processing frames with GPU (this may take a minute)", 60)
+            
+            # Poll for job completion with progress updates
+            runpod_job_id = batch_job.get("runpod_job_id")
+            job_complete = False
+            timeout = 300  # 5 minutes
+            start_time = asyncio.get_event_loop().time()
+            
+            while not job_complete and asyncio.get_event_loop().time() - start_time < timeout:
+                job_status = await self.runpod_service.get_job_status(runpod_job_id)
+                
+                if job_status.get("status") == "COMPLETED":
+                    job_complete = True
+                elif job_status.get("status") == "FAILED":
+                    await self._update_progress(job_id, "error", "GPU job failed", 60)
+                    return {"error": "GPU batch job failed"}
+                else:
+                    # Update progress based on RunPod status
+                    status_text = job_status.get("status", "PENDING")
+                    progress = 60
+                    if status_text == "IN_PROGRESS":
+                        progress = 65
+                    elif status_text == "IN_QUEUE":
+                        progress = 62
+                        
+                    await self._update_progress(job_id, "gpu_job_" + status_text.lower(), f"GPU job status: {status_text}", progress)
+                    await asyncio.sleep(3)  # Poll every 3 seconds
+            
+            if not job_complete:
+                await self._update_progress(job_id, "error", "GPU job timed out", 65)
+                return {"error": "GPU batch job timed out"}
+            
+            # Get job result
+            await self._update_progress(job_id, "getting_gpu_results", "Retrieving GPU analysis results", 70)
+            job_result = await self.runpod_service.get_job_output(runpod_job_id)
+            
+            if not job_result.get("success", False):
+                await self._update_progress(job_id, "error", "Failed to get GPU job results", 70)
+                return {
+                    "error": "Failed to get GPU job results",
+                    "details": job_result.get("error")
+                }
+            
+            # Process embeddings
+            await self._update_progress(job_id, "processing_embeddings", "Processing frame embeddings", 75)
+            embeddings = job_result.get("output", {}).get("embeddings", [])
+            if not embeddings:
+                await self._update_progress(job_id, "error", "No embeddings returned from GPU job", 75)
+                return {"error": "No embeddings returned from GPU job"}
+            
+            # Find visual origins
+            await self._update_progress(job_id, "finding_visual_origins", "Searching for visual origins", 80)
+            visual_origins = await self._find_visual_origins(embeddings, job_id)
+            
+            # Combine frame origins
+            await self._update_progress(job_id, "combining_origins", "Determining primary visual origin", 85)
+            visual_result = await self._combine_frame_origins(visual_origins)
+            
+            # Check for composite
+            await self._update_progress(job_id, "checking_composite", "Checking if video is composite", 90)
+            is_composite = await self._check_if_composite(audio_result, visual_result)
+            
+            # Prepare final result
+            await self._update_progress(job_id, "preparing_result", "Preparing final result", 95)
+            result = {
+                "job_id": job_id,
+                "metadata": metadata,
+                "origins": {
+                    "audio": audio_result.get("origin") if audio_result and not audio_result.get("error") else None,
+                    "visual": visual_result.get("origin") if visual_result and not visual_result.get("error") else None
+                },
+                "is_composite": is_composite,
+                "confidence": {
+                    "audio": audio_result.get("confidence", 0) if audio_result and not audio_result.get("error") else 0,
+                    "visual": visual_result.get("confidence", 0) if visual_result and not visual_result.get("error") else 0
+                },
+                "hash": video_hash
+            }
+            
+            # Cache the result
+            await self.redis_service.set_cache(
+                f"video:{video_hash}", 
+                result,
+                ttl_days=90  # 90 days
+            )
+            
+            # Store the final result for this job
+            await self.redis_service.set_cache(
+                f"video_result:{job_id}", 
+                result,
+                ttl_days=1  # Short TTL for job results
+            )
+            
+            # Deduct credits if user_id provided
+            if user_id:
+                await self.credit_service.deduct_credits(user_id, 8, f"Video processing: {job_id}")
+            
+            await self._update_progress(job_id, "complete", "Processing complete", 100)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in video pipeline: {str(e)}")
+            await self._update_progress(job_id, "error", f"Error: {str(e)}", 0)
+            return {
+                "job_id": job_id,
+                "error": str(e)
+            }
+        finally:
+            # Clean up temp files
+            for temp_file in temp_files:
+                delete_file_if_exists(temp_file)
+    
+    async def _update_progress(self, 
+                              job_id: str, 
+                              status: str, 
+                              message: str, 
+                              percent: int) -> None:
+        """
+        Update processing progress for a job. This information is used for SSE.
+        
+        Args:
+            job_id: The job ID
+            status: Current status code
+            message: Human-readable progress message
+            percent: Progress percentage (0-100)
+        """
+        progress = {
+            "job_id": job_id,
+            "status": status,
+            "message": message,
+            "percent": percent,
+            "timestamp": asyncio.get_event_loop().time()
+        }
+        
+        logger.info(f"Job {job_id} progress: {status} - {message} ({percent}%)")
+        
+        # Store in Redis for SSE endpoint to retrieve
+        await self.redis_service.set_cache(
+            f"video_progress:{job_id}", 
+            progress,
+            ttl_days=1  # 24 hours TTL
+        ) 

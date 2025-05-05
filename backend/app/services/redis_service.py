@@ -11,7 +11,7 @@ class RedisService:
         self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         self.redis_client = redis.from_url(self.redis_url)
         
-    def set_cache(self, key, value, ttl_days=30):
+    async def set_cache(self, key, value, ttl_days=30):
         """
         Store value in Redis cache with TTL
         
@@ -26,8 +26,16 @@ class RedisService:
             
         # Set with TTL
         self.redis_client.set(key, value, ex=timedelta(days=ttl_days).total_seconds())
-        
-    def get_cache(self, key):
+    
+    # Alias for compatibility with existing code
+    async def set(self, key, value, expire_seconds=None):
+        """
+        Alias for set_cache that supports expire_seconds
+        """
+        ttl_days = expire_seconds / (24 * 60 * 60) if expire_seconds else 30
+        await self.set_cache(key, value, ttl_days)
+            
+    async def get_cache(self, key):
         """
         Retrieve value from Redis cache
         
@@ -49,12 +57,19 @@ class RedisService:
         except json.JSONDecodeError:
             # Return as-is if not JSON
             return value
+    
+    # Alias for compatibility with existing code
+    async def get(self, key):
+        """
+        Alias for get_cache
+        """
+        return await self.get_cache(key)
             
-    def delete_cache(self, key):
+    async def delete_cache(self, key):
         """Delete cache entry"""
         self.redis_client.delete(key)
         
-    def exists(self, key):
+    async def exists(self, key):
         """Check if key exists in cache"""
         return self.redis_client.exists(key) > 0
 

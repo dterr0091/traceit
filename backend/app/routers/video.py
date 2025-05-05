@@ -1,6 +1,7 @@
 import os
 import logging
 import asyncio
+import json
 from typing import Dict, List, Any, Optional, Union
 from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -69,23 +70,26 @@ async def process_video(
         if file:
             temp_file = await save_upload_file_temp(file)
             
-            # Start video processing
-            result = await video_pipeline.process_video(
+            # Start video processing in background
+            background_tasks.add_task(
+                video_pipeline.process_video_with_progress,
                 file_path=temp_file,
                 job_id=job_id
             )
         else:
-            # Process from URL
-            result = await video_pipeline.process_video(
+            # Process from URL in background
+            background_tasks.add_task(
+                video_pipeline.process_video_with_progress,
                 url=url,
                 job_id=job_id
             )
         
-        # Deduct credits if processing was successful and user is authenticated
-        if user and not result.get("error") and not result.get("from_cache", False):
-            await credit_service.deduct_credits(user["id"], 8, f"Video processing: {job_id}")
-        
-        return result
+        # Immediate response with job ID
+        return {
+            "job_id": job_id,
+            "status": "processing",
+            "message": "Video processing started"
+        }
         
     except Exception as e:
         logger.error(f"Error in video processing endpoint: {str(e)}")
@@ -93,10 +97,68 @@ async def process_video(
             status_code=500,
             detail=f"Error processing video: {str(e)}"
         )
-    finally:
-        # Clean up temp file in background to avoid blocking response
-        if temp_file:
-            background_tasks.add_task(os.unlink, temp_file)
+
+@router.get("/progress/{job_id}")
+async def video_progress_sse(
+    job_id: str,
+    user: Optional[Dict] = Depends(get_current_user)
+):
+    """
+    Stream processing updates for a video job using Server-Sent Events.
+    
+    Args:
+        job_id: The job ID to track
+        user: Current authenticated user
+        
+    Returns:
+        SSE stream with processing updates
+    """
+    
+    async def event_generator():
+        try:
+            # Send initial connection established message
+            yield f"data: {json.dumps({'status': 'connected', 'job_id': job_id})}\n\n"
+            
+            # Keep checking for progress updates until complete or error
+            while True:
+                # Get current job status from Redis
+                job_status = await video_pipeline.redis_service.get_cache(f"video_progress:{job_id}")
+                
+                if not job_status:
+                    # If no status found, check if there's a result already
+                    result = await video_pipeline.redis_service.get_cache(f"video_result:{job_id}")
+                    if result:
+                        yield f"data: {json.dumps({'status': 'complete', 'result': result})}\n\n"
+                        break
+                    else:
+                        yield f"data: {json.dumps({'status': 'pending', 'message': 'Waiting for job to start'})}\n\n"
+                elif job_status.get("status") == "complete" or job_status.get("error"):
+                    # Job is finished, send final update and close
+                    yield f"data: {json.dumps(job_status)}\n\n"
+                    break
+                else:
+                    # Send progress update
+                    yield f"data: {json.dumps(job_status)}\n\n"
+                
+                # Wait before checking again
+                await asyncio.sleep(1)
+                
+        except Exception as e:
+            logger.error(f"Error in SSE stream for job {job_id}: {str(e)}")
+            yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
+        
+        # Final message to close the connection
+        yield f"data: {json.dumps({'status': 'closed'})}\n\n"
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'  # For Nginx
+        }
+    )
 
 @router.get("/status/{job_id}")
 async def get_video_job_status(
@@ -115,16 +177,24 @@ async def get_video_job_status(
     """
     try:
         # Use Redis to check job status
-        result = await video_pipeline.redis_service.get(f"video_job:{job_id}")
+        progress = await video_pipeline.redis_service.get_cache(f"video_progress:{job_id}")
+        result = await video_pipeline.redis_service.get_cache(f"video_result:{job_id}")
         
-        if not result:
+        if result:
             return {
                 "job_id": job_id,
-                "status": "not_found",
-                "message": "Job not found or expired"
+                "status": "complete",
+                "result": result
             }
         
-        return result
+        if progress:
+            return progress
+        
+        return {
+            "job_id": job_id,
+            "status": "not_found",
+            "message": "Job not found or expired"
+        }
         
     except Exception as e:
         logger.error(f"Error checking video job status: {str(e)}")

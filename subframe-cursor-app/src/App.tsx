@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
 import SourceTrace from "./pages/SourceTrace";
+import VideoAnalysisPage from "./pages/VideoAnalysisPage";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<SourceTrace />} />
+          <Route path="/video" element={<VideoAnalysisPage />} />
         </Routes>
       </Router>
     </Auth0Provider>
