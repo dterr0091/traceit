@@ -27,7 +27,20 @@ export interface CommunityNote {
 }
 
 export interface PerplexitySearchResult {
-  // Add properties as needed
+  answer: {
+    text: string;
+    citations: Array<{
+      title: string;
+      url: string;
+    }>;
+  };
+  results: Array<{
+    title: string;
+    url: string;
+    source: string;
+    published_date: string;
+    snippet: string;
+  }>;
 }
 
 export interface SearchInput {
