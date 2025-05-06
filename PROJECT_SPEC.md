@@ -39,8 +39,32 @@
 * Credit ledger in Postgres (Supabase) enforces free‑tier + paid quotas.
 * Composite videos add ≤ $0.01 per search (extra CLIP embeds); hit rate ≈ 20 % of all video searches.
 * Each extra image artifact adds ≈ $0.001 (OCR + embed); negligible versus video COGS.
+* Sonar Standard probe = $0.01 per 1 M tok; Pro escalation only on low‑confidence misses.
 
-## 5. Logical build order (milestones)
+## 5. Perplexity‑powered features
+
+1. **Canonical claim generator**  
+   *Use Sonar Pro (`structured=true`) to normalize messy snippets into one `canonical_claim` + `key_entities[]`. Cuts duplicate vector inserts.*
+
+2. **First‑seen timestamp cross‑check**  
+   *Query Sonar's crawl for earliest public‑web date; flag discrepancies with our lineage graph.*
+
+3. **Domain‑scoped re‑ranking**  
+   *Expose UI toggles ("Academic", "News", "Social") → pass `search_domain:"..."` param to Sonar.*
+
+4. **Composite‑video reasoning**  
+   *Single Sonar prompt checks if audio creator = visual creator; overrides heuristic when confidence ≥ 0.9.*
+
+5. **Trending‑spread snapshots**  
+   *Nightly job: send 50 newest claims → store top‑3 citations for external spread view.*
+
+6. **Cost‑killer router**  
+   *Call cheap `model:"sonar"` first; escalate to Sonar Pro only if < 3 citations or `<0.80` confidence. Expected 40‑60 % Perplexity cost reduction.*
+
+7. **Explain‑why UI**  
+   *Surface Sonar citations as hover cards; zero extra scraping.*
+
+## 6. Logical build order (milestones)
 1. Auth & credit meter, pgvector search, Redis + Perplexity router.  
 2. Image reverse flow (Brave) + TinEye batch.  
 3. Implement Session / Bundle model and Aggregator function (OCR + entity merge)
@@ -50,6 +74,13 @@
 7. Implement composite‑media checker (audio vs visual origin reconciliation)
 8. Nightly lineage graph (Neo4j Aura) & spread‑view endpoint.  
 9. Stripe usage billing hooks, push/email notifications, prod hardening.
+
+**Weekly implementation schedule:**
+- **Week 1** – Integrate *Canonical claim generator* + *Cost‑killer router*.  
+- **Week 2** – Add *Domain‑scoped re‑ranking* toggle.  
+- **Week 3** – Implement *Composite‑video reasoning* via Sonar prompt.  
+- **Week 4** – Schedule *Trending‑spread snapshot* nightly cron.  
+- **Week 4** – Add *Explain‑why UI* hover cards (uses Sonar citations—no extra backend).
 
 ## Core Features
 
@@ -76,6 +107,7 @@
   - Visit counts
   - Platform-specific metrics
 
+
 ### 3. Change Requests System
 - **Features**:
   - Open contribution (any user can add notes)
@@ -87,6 +119,8 @@
   - Significant vote differences trigger highlighting
 - **Additional Features**:
   - Change requests
+
+  
 
 ## Technical Architecture
 

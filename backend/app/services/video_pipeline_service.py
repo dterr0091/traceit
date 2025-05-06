@@ -12,6 +12,7 @@ from ..services.redis_service import RedisService
 from ..services.vector_service import VectorService
 from ..services.router_service import RouterService
 from ..services.credit_service import CreditService
+from ..services.lineage_service import LineageService
 from ..utils.file_utils import delete_file_if_exists, upload_to_storage
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class VideoPipelineService:
         self.vector_service = VectorService()
         self.router_service = RouterService()
         self.credit_service = CreditService()
+        self.lineage_service = LineageService()
         
         # Similarity threshold for matching frames
         self.clip_similarity_threshold = 0.20
@@ -115,6 +117,17 @@ class VideoPipelineService:
                 },
                 "hash": video_hash
             }
+            
+            # Store in lineage service for tracking
+            if audio_result or visual_result:
+                await self.lineage_service.store_origin(
+                    artifact_id=video_hash,
+                    artifact_type="video",
+                    origin_data=None,  # No single origin for composite videos
+                    is_composite=is_composite,
+                    audio_origin=audio_result.get("origin") if audio_result else None,
+                    visual_origin=visual_result.get("origin") if visual_result else None
+                )
             
             # Cache the result
             await self.redis_service.set(
@@ -613,6 +626,17 @@ class VideoPipelineService:
                 },
                 "hash": video_hash
             }
+            
+            # Store in lineage service
+            if audio_result or visual_result:
+                await self.lineage_service.store_origin(
+                    artifact_id=video_hash,
+                    artifact_type="video",
+                    origin_data=None,  # No single origin for composite videos
+                    is_composite=is_composite,
+                    audio_origin=audio_result.get("origin") if audio_result and not audio_result.get("error") else None,
+                    visual_origin=visual_result.get("origin") if visual_result and not visual_result.get("error") else None
+                )
             
             # Cache the result
             await self.redis_service.set_cache(

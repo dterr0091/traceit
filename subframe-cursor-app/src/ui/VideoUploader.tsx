@@ -4,9 +4,10 @@ import VideoProgressTracker from './VideoProgressTracker';
 
 interface VideoUploaderProps {
   onVideoProcessed?: (result: any) => void;
+  onUploadStart?: () => void;
 }
 
-const VideoUploader: React.FC<VideoUploaderProps> = ({ onVideoProcessed }) => {
+const VideoUploader: React.FC<VideoUploaderProps> = ({ onVideoProcessed, onUploadStart }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>('');
   const [jobStatus, setJobStatus] = useState<VideoJobStatus | null>(null);
@@ -63,6 +64,11 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onVideoProcessed }) => {
       setIsUploading(true);
       setJobStatus(null);
       
+      // Notify parent component that upload is starting
+      if (onUploadStart) {
+        onUploadStart();
+      }
+      
       // Start video upload and processing
       const response = await videoService.processVideo(file, (status) => {
         // Update job status for progress tracking
@@ -84,6 +90,11 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onVideoProcessed }) => {
     try {
       setIsUploading(true);
       setJobStatus(null);
+      
+      // Notify parent component that upload is starting
+      if (onUploadStart) {
+        onUploadStart();
+      }
       
       // Start video processing from URL
       const response = await videoService.processVideoUrl(url, (status) => {

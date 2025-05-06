@@ -3,10 +3,13 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from .routers import auth, credits, search, audio, video, spread
+from .routers import auth, credits, search, audio, video, spread, billing
 from .models.db import engine, Base
 from .services.scheduler_service import SchedulerService
 from .services.lineage_service import LineageService
+from .services.security_service import SecurityService
+import uvicorn
+from app.core.config import settings
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -20,18 +23,18 @@ logging.basicConfig(
 # Initialize FastAPI app
 app = FastAPI(
     title="Trace API",
-    description="API for Trace - Content Origin Verification Service",
-    version="0.1.0"
+    description="API for identifying the earliest verifiable origin of content",
+    version="0.1.0",
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configure security
+SecurityService.setup_cors(app, [
+    os.getenv("FRONTEND_URL", "http://localhost:3000"),
+    "https://trace.app"
+])
+
+# Configure security middlewares (rate limiting, security headers, request logging)
+SecurityService.setup_security_middlewares(app, os.getenv("REDIS_URL"))
 
 # Add session middleware
 app.add_middleware(
@@ -47,6 +50,7 @@ app.include_router(search.router)
 app.include_router(audio.router)
 app.include_router(video.router)
 app.include_router(spread.router)
+app.include_router(billing.router)
 
 # Initialize services
 scheduler_service = SchedulerService()
@@ -66,6 +70,24 @@ async def startup_event():
 
     # Start the scheduler when the application starts
     await scheduler_service.start()
+    
+    # Log environment mode
+    env = os.getenv("ENV", "development")
+    logging.info(f"Running in {env} mode")
+    
+    # Check for required API keys
+    required_keys = [
+        "JWT_SECRET_KEY",
+        "REDIS_URL",
+        "STRIPE_API_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "SMTP_USERNAME",
+        "SMTP_PASSWORD"
+    ]
+    
+    for key in required_keys:
+        if not os.getenv(key) and env != "development":
+            logging.warning(f"Warning: {key} is not set in production environment")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -86,4 +108,12 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"} 
+    return {"status": "ok"}
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.ENV == "development",
+    ) 

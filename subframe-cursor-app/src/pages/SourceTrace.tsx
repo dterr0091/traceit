@@ -377,86 +377,38 @@ function SourceTrace() {
   return (
     <DefaultPageLayout>
       <div className="flex h-full w-full flex-col items-start bg-default-background">
-        <div className="flex w-full flex-col items-start gap-6 border-b border-solid border-neutral-border px-6 py-6">
-          <div className="flex w-full items-center gap-2">
-            <div 
-              className={`flex h-auto grow shrink-0 basis-0 flex-col items-start gap-2 ${isDragging ? 'bg-brand-50' : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              {uploadedImages.length > 0 && (
-                <div className="flex w-full flex-wrap items-start gap-2 p-2">
-                  {uploadedImages.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img 
-                        src={image} 
-                        alt={`Preview ${index + 1}`} 
-                        className="h-12 w-12 rounded-md object-cover"
-                      />
-                      <IconButton
-                        icon={<FeatherXCircle />}
-                        onClick={() => clearImage(index)}
-                        variant="neutral-tertiary"
-                        size="small"
-                        className="absolute -right-1 -top-1 h-4 w-4"
-                      />
-                    </div>
-                  ))}
-                  {uploadedImages.length > 0 && (
-                    <IconButton
-                      icon={<FeatherXCircle />}
-                      onClick={clearAllImages}
-                      variant="neutral-tertiary"
-                      size="small"
-                      className="h-4 w-4"
-                    />
-                  )}
-                </div>
-              )}
-              <div className="flex w-full items-center gap-2">
-                <IconButton
-                  icon={<FeatherPlus />}
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="neutral-tertiary"
-                  size="small"
-                  className="ml-2"
-                  disabled={uploadedImages.length >= 5}
-                />
-                <TextField
-                  className="w-full"
-                  label=""
-                  helpText={creditEstimate > 0 ? `Estimated credits: ${creditEstimate}` : ""}
-                  icon={<FeatherSearch />}
-                >
-                  <TextField.Input
-                    placeholder={`Search for content to trace or drag & drop images (${uploadedImages.length}/5)...`}
-                    value={searchQuery}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                      setSearchQuery(event.target.value);
-                      setCreditEstimate(calculateCredits(event.target.value, uploadedImages));
-                    }}
-                    onKeyPress={handleKeyPress}
-                  />
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileInputChange}
-                  />
-                </TextField>
-              </div>
-            </div>
+        {/* Search Area Layout - On Brand */}
+        <div className="w-full mt-10">
+          <div
+            className="relative w-full border border-solid border-neutral-border rounded-md bg-default-background p-6"
+          >
+            <textarea
+              className="w-full min-h-[100px] resize-none text-body font-body text-default-font bg-transparent border-none outline-none focus:ring-0 focus:outline-none"
+              placeholder="Search for anything"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+            <IconButton
+              icon={<FeatherPlus />}
+              onClick={() => fileInputRef.current?.click()}
+              variant="neutral-tertiary"
+              size="small"
+              className="absolute left-6 bottom-6"
+              aria-label="Add"
+            />
             <Button
-              icon={<FeatherSearch />}
+              className="absolute right-6 bottom-6"
               onClick={handleSearch}
+              icon={<FeatherSearch />}
             >
               Trace
             </Button>
           </div>
+          <div className="mt-4 text-subtext-color text-body font-body">
+            Estimated token count : {searchQuery.length > 0 ? Math.ceil(searchQuery.length / 4) : 0}
+          </div>
         </div>
+        {/* End Search Area Layout */}
         <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-8">
           {!searchState.results && !searchState.isLoading ? (
             renderEmptyState()

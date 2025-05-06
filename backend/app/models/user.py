@@ -11,6 +11,7 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    stripe_customer_id = Column(String, nullable=True)
     
     # Define relationship with CreditBalance
     credit_balance = relationship("CreditBalance", back_populates="user", uselist=False)

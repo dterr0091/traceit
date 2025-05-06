@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..models.user import User, CreditBalance, CreditTransaction, SearchHistory
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, BackgroundTasks
+import logging
 
 class CreditService:
     @staticmethod
@@ -42,7 +43,13 @@ class CreditService:
         return credit_balance.balance
     
     @staticmethod
-    def use_credits(db: Session, user_id: int, amount: int, search_id: int = None) -> bool:
+    async def use_credits(
+        db: Session,
+        user_id: int,
+        amount: int,
+        search_id: int = None,
+        background_tasks: BackgroundTasks = None
+    ) -> bool:
         """
         Use credits for a search operation
         
@@ -51,6 +58,7 @@ class CreditService:
             user_id: User ID
             amount: Amount of credits to use
             search_id: ID of the search operation (if available)
+            background_tasks: BackgroundTasks for notifications
             
         Returns:
             True if credits were successfully used, False if insufficient credits
@@ -84,6 +92,24 @@ class CreditService:
         )
         db.add(transaction)
         db.commit()
+        
+        # Check if balance is low and send notification
+        if background_tasks and credit_balance.balance <= 10:
+            try:
+                # Import here to avoid circular import
+                from ..services.notification_service import NotificationService
+                
+                # Send low credits notification
+                await NotificationService.notify_low_credits(
+                    background_tasks=background_tasks,
+                    db=db,
+                    user_id=user_id,
+                    current_balance=credit_balance.balance
+                )
+                
+                logging.info(f"Low credit notification sent to user {user_id}")
+            except Exception as e:
+                logging.error(f"Failed to send low credit notification: {e}")
         
         return True
     

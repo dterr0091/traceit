@@ -1,91 +1,98 @@
 # Trace Backend
 
-## Overview
-Backend service for Trace - a platform that identifies the earliest verifiable origin of text, image, audio, or video content.
+Backend API service for Trace - a tool that identifies the earliest verifiable origin of text, image, audio, or video content.
 
-This implementation covers the first milestone of the project:
-- Authentication system
-- Credit metering
-- pgvector search
-- Redis cache
-- Perplexity router
-
-## Getting Started
+## Setup
 
 ### Prerequisites
-- Python 3.9+
-- PostgreSQL database with pgvector extension
-- Redis server
-- Perplexity API key
+- Python 3.11+
+- PostgreSQL 15+
+- Redis 7+
+- Docker and Docker Compose (optional)
 
-### Setup
+### Local Development
 
 1. Create a virtual environment:
-```
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
-```
+```bash
 pip install -r requirements.txt
 ```
 
-3. Create a `.env` file based on `.env.example`:
-```
-# PostgreSQL Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/traceit
-
-# Auth
-SECRET_KEY=your_secret_key_here
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# Perplexity API
-PERPLEXITY_API_KEY=your_perplexity_api_key_here
-
-# Server
-HOST=0.0.0.0
-PORT=8000
+3. Create a `.env` file based on the template:
+```bash
+cp .env.template .env
+# Edit .env with your configuration
 ```
 
-4. Setup PostgreSQL with pgvector extension:
-```sql 
-CREATE DATABASE traceit;
-CREATE EXTENSION IF NOT EXISTS vector;
+4. Start PostgreSQL and Redis (if not using Docker):
+```bash
+# Install PostgreSQL and Redis on your system
+# Create a database named 'traceit'
 ```
 
-5. Run the server:
+5. Run the application:
+```bash
+uvicorn app.main:app --reload
 ```
-python run.py
+
+### Docker Development
+
+1. Create a `.env` file based on the template:
+```bash
+cp .env.template .env
+# Edit .env with your configuration
 ```
 
-The API will be available at http://localhost:8000/ with documentation at http://localhost:8000/docs
+2. Build and start the containers:
+```bash
+docker-compose up -d
+```
 
-## API Endpoints
+3. Access the API at http://localhost:8000
 
-### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/token` - Login and get access token
-- `GET /auth/me` - Get current user info
+## API Documentation
 
-### Credits
-- `GET /credits/balance` - Get credit balance
-- `POST /credits/add` - Add credits
-- `GET /credits/transactions` - Get transaction history
-- `GET /credits/searches` - Get search history
+Once running, access the interactive API documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-### Search
-- `POST /search/text` - Search for text origin
-- `POST /search/url` - Search for URL content origin
-- `GET /search/status/{job_id}` - Get search job status
+## Project Structure
 
-## Architecture
-- **Authentication**: JWT-based auth with password hashing
-- **Database**: PostgreSQL with pgvector for vector similarity search
-- **Caching**: Redis for caching Perplexity results and search results
-- **API**: FastAPI for high-performance async API
-- **Routing**: Smart router that uses local search first, falls back to Perplexity API when needed 
+```
+backend/
+├── app/
+│   ├── api/           # API routes
+│   │   └── v1/        # API version 1 endpoints
+│   ├── core/          # Core application code
+│   ├── db/            # Database connection and queries
+│   ├── models/        # SQLAlchemy models
+│   ├── schemas/       # Pydantic schemas
+│   ├── services/      # Business logic
+│   └── utils/         # Utility functions
+├── tests/             # Tests
+├── .env               # Environment variables (create from .env.template)
+├── .env.template      # Environment variables template
+├── requirements.txt   # Python dependencies
+├── Dockerfile         # Docker configuration
+└── docker-compose.yml # Docker Compose configuration
+```
+
+## Credits System
+
+- Light request (URL/text): 1 credit
+- Heavy request (image/audio): 3 credits
+- Video request: 8 credits (paid tiers only)
+
+## External APIs Used
+
+- OpenAI API
+- Perplexity Sonar API
+- Brave Search API
+- TinEye API (for image searches)
+- ACRCloud API (for audio fingerprinting)
+- RunPod API (for GPU batch processing) 

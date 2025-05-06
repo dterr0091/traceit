@@ -54,10 +54,11 @@ class ImageSearchService:
         
         origins = BraveSearchService.extract_origins(brave_results)
         
+        # TinEye fallback temporarily disabled
         # If Brave results aren't good enough, enqueue the image for TinEye batch processing
-        if not origins or len(origins) < 3 or max(origin.get("confidence", 0) for origin in origins) < 0.8:
-            logger.info(f"Adding image {image_hash} to TinEye batch queue")
-            TinEyeService.add_to_batch(image_data, image_hash)
+        # if not origins or len(origins) < 3 or max(origin.get("confidence", 0) for origin in origins) < 0.8:
+        #     logger.info(f"Adding image {image_hash} to TinEye batch queue")
+        #     TinEyeService.add_to_batch(image_data, image_hash)
         
         # Calculate confidence score based on number and quality of results
         confidence = 0.0
