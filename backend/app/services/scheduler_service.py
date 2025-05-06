@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from typing import Dict, Any, Optional
 from .tineye_service import TinEyeService
+from .lineage_service import LineageService
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,8 @@ class SchedulerService:
     
     _running = False
     _tineye_last_run = 0
+    _lineage_graph_last_run = 0
+    _lineage_service = None
     
     @classmethod
     async def start(cls):
@@ -21,6 +24,7 @@ class SchedulerService:
             return
         
         cls._running = True
+        cls._lineage_service = LineageService()
         asyncio.create_task(cls._run_scheduler())
         logger.info("Scheduler started")
     
@@ -35,11 +39,18 @@ class SchedulerService:
         """Main scheduler loop"""
         while cls._running:
             try:
-                # Check if it's time to run TinEye batch
                 current_time = time.time()
+                
+                # Check if it's time to run TinEye batch
                 if current_time - cls._tineye_last_run >= 3600:  # 1 hour interval
                     await cls._run_tineye_batch()
                     cls._tineye_last_run = current_time
+                
+                # Check if it's time to run lineage graph update
+                # Run once per day (24 hours = 86400 seconds)
+                if current_time - cls._lineage_graph_last_run >= 86400:
+                    await cls._run_lineage_graph_update()
+                    cls._lineage_graph_last_run = current_time
                 
                 # Sleep for a bit to avoid busy waiting
                 await asyncio.sleep(60)  # Check every minute
@@ -60,7 +71,32 @@ class SchedulerService:
             return {"status": "error", "error": str(e)}
     
     @classmethod
+    async def _run_lineage_graph_update(cls) -> Dict[str, Any]:
+        """Run nightly lineage graph update to build multi-hop relationships"""
+        logger.info(f"Running scheduled lineage graph update at {datetime.utcnow().isoformat()}")
+        
+        if not cls._lineage_service or not cls._lineage_service.neo4j_enabled:
+            logger.warning("Neo4j is not enabled - skipping lineage graph update")
+            return {"status": "skipped", "reason": "Neo4j not enabled"}
+        
+        try:
+            result = await cls._lineage_service.build_multi_hop_graph()
+            logger.info(f"Lineage graph update completed: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error in lineage graph update: {str(e)}")
+            return {"status": "error", "error": str(e)}
+    
+    @classmethod
     async def force_run_tineye_batch(cls) -> Dict[str, Any]:
         """Manually force a TinEye batch run"""
         cls._tineye_last_run = time.time()  # Update the last run time
         return await cls._run_tineye_batch() 
+        
+    @classmethod
+    async def force_run_lineage_graph_update(cls) -> Dict[str, Any]:
+        """Manually force a lineage graph update"""
+        if not cls._lineage_service:
+            cls._lineage_service = LineageService()
+        cls._lineage_graph_last_run = time.time()  # Update the last run time
+        return await cls._run_lineage_graph_update() 
