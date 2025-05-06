@@ -63,16 +63,6 @@ export class SearchService {
       // Extract information from the text response
       const results: SearchResult[] = [];
       
-      // Add an original source result
-      results.push({
-        title: `Original Source: ${originalQuery}`,
-        platform: 'Perplexity',
-        timestamp: new Date().toISOString(),
-        viralityScore: 'High',
-        platformIcon: 'globe',
-        isOriginalSource: true
-      });
-      
       // Extract potential sources from the response text
       const sentences = responseText.split(/[.!?]+/);
       let sourceCount = 0;
@@ -95,22 +85,22 @@ export class SearchService {
             timestamp: this.generateRandomPastDate(),
             viralityScore: sourceCount === 1 ? 'High' : sourceCount === 2 ? 'Medium' : 'Low',
             platformIcon: this.getPlatformIcon(this.extractPlatform(sentence)),
-            isOriginalSource: false
+            isOriginalSource: sourceCount === 1 // First result is the original source
           });
         }
       }
       
       // If no sources were identified, create some generic entries
-      if (results.length === 1) {
+      if (results.length === 0) {
+        const platforms = ['Twitter', 'LinkedIn', 'Reddit', 'Facebook'];
         for (let i = 0; i < 3; i++) {
-          const platforms = ['Twitter', 'LinkedIn', 'Reddit', 'Facebook'];
           results.push({
             title: `Related content for: ${originalQuery}`,
             platform: platforms[i],
             timestamp: this.generateRandomPastDate(),
             viralityScore: i === 0 ? 'High' : i === 1 ? 'Medium' : 'Low',
             platformIcon: this.getPlatformIcon(platforms[i]),
-            isOriginalSource: false
+            isOriginalSource: i === 0 // First result is the original source
           });
         }
       }
