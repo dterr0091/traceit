@@ -479,24 +479,13 @@ function SourceTrace() {
                       Virality
                     </span>
                   </div>
-                  <Table
-                    header={
-                      <Table.HeaderRow>
-                        <Table.HeaderCell>Title</Table.HeaderCell>
-                        <Table.HeaderCell>Platform</Table.HeaderCell>
-                        <Table.HeaderCell>Time</Table.HeaderCell>
-                        <Table.HeaderCell>Virality Score</Table.HeaderCell>
-                      </Table.HeaderRow>
-                    }
-                  >
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
                     {searchState.results.slice(1).map((result, index) => (
-                      <Table.Row key={`result-${result.title}-${index}`}>
-                        <Table.Cell>
-                          <span className="text-body-bold font-body-bold text-default-font">
-                            {result.title}
-                          </span>
-                        </Table.Cell>
-                        <Table.Cell>
+                      <div 
+                        key={`result-${result.title}-${index}`}
+                        className="flex flex-col rounded-md border border-solid border-neutral-border bg-default-background p-4 hover:bg-neutral-50 transition-colors"
+                      >
+                        <div className="flex justify-between items-start mb-3">
                           <div className="flex items-center gap-2">
                             <Avatar
                               size="small"
@@ -508,20 +497,23 @@ function SourceTrace() {
                               {result.platform}
                             </span>
                           </div>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <span className="text-body font-body text-default-font">
-                            {new Date(result.timestamp).toLocaleString()}
-                          </span>
-                        </Table.Cell>
-                        <Table.Cell>
                           <Badge variant={result.viralityScore === 'High' ? 'success' : result.viralityScore === 'Medium' ? 'warning' : 'neutral'}>
                             {result.viralityScore}
                           </Badge>
-                        </Table.Cell>
-                      </Table.Row>
+                        </div>
+                        
+                        <h3 className="text-body-bold font-body-bold text-default-font mb-2">
+                          {result.title}
+                        </h3>
+                        
+                        <div className="mt-auto pt-2 text-sm text-subtext-color">
+                          <span>
+                            {new Date(result.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
                     ))}
-                  </Table>
+                  </div>
                 </div>
               )}
               <div className="flex w-full flex-col items-start gap-4">
