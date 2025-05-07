@@ -17,7 +17,7 @@ import { FeatherPlus } from "@subframe/core";
 import { FeatherThumbsUp } from "@subframe/core";
 import { FeatherLoader } from "@subframe/core";
 import { FeatherUpload } from "@subframe/core";
-import { mockCommunityNotes } from '../services/mockData';
+import { mockCommunityNotes, mockSearch, mockLoadingSteps, simulateApiDelay } from '../services/mockData';
 import { SearchState, CommunityNote, SearchInput } from '../types/sourceTrace';
 import { SearchService } from '../services';
 import { ShareModal } from "@/ui/components/ShareModal";
@@ -77,36 +77,29 @@ function SourceTrace() {
 
     setSearchState({
       isLoading: true,
-      currentStep: "Analyzing input...",
+      currentStep: mockLoadingSteps[0], // "Analyzing input..."
       error: null,
       results: null
     });
 
     try {
-      setTimeout(() => {
+      // Simulate step progression with delays
+      for (let i = 1; i < mockLoadingSteps.length; i++) {
+        await simulateApiDelay(1000);
         setSearchState(prev => ({
           ...prev,
-          currentStep: "Searching web..."
+          currentStep: mockLoadingSteps[i]
         }));
-      }, 1500);
+      }
 
-      setTimeout(() => {
-        setSearchState(prev => ({
-          ...prev,
-          currentStep: "Compiling results..."
-        }));
-      }, 3000);
-
-      const searchInput: SearchInput = {
-        query: searchQuery,
-        images: uploadedImages
-      };
-
-      const results = await searchService.current.search(searchInput.query ?? '');
+      // Get mock search results based on query content
+      const results = await mockSearch(searchQuery || 'tech news');
       
+      // Process results
       const originalSources = results.filter(result => result.isOriginalSource);
       const viralPoints = results.filter(result => !result.isOriginalSource);
 
+      // Update community notes to reference the search
       const updatedNotes = mockCommunityNotes.map(note => ({
         ...note,
         content: note.content.replace(
@@ -116,6 +109,8 @@ function SourceTrace() {
       }));
       setCommunityNotes(updatedNotes);
 
+      // Complete the search process
+      await simulateApiDelay(500);
       setSearchState(prev => ({
         ...prev,
         isLoading: false,

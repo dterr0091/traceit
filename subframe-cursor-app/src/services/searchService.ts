@@ -1,116 +1,45 @@
 import { SearchResult, SearchState, PerplexitySearchResult } from '../types/sourceTrace';
+import { mockSearchResults, generateExtendedGraphData, simulateApiDelay } from './mockData';
 
 export class SearchService {
   private apiKey: string;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY || '';
-    
-    if (!this.apiKey) {
-      throw new Error('Perplexity API key not found. Please add VITE_PERPLEXITY_API_KEY to your environment variables.');
-    }
+    // We no longer need to validate API key since we're using mock data
+    this.apiKey = import.meta.env.VITE_PERPLEXITY_API_KEY || 'mock-key';
+    console.log('SearchService initialized with mock data support');
   }
 
   async search(query: string): Promise<SearchResult[]> {
     try {
-      console.log('Making API request to Perplexity with query:', query);
+      console.log('Using mock data for search query:', query);
       
-      // Make a real API call to Perplexity
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'sonar',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful assistant that provides factual information.'
-            },
-            {
-              role: 'user',
-              content: `Find the original source and related content for: ${query}`
-            }
-          ],
-          max_tokens: 1024
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API response error:', response.status, errorText);
-        throw new Error(`API error (${response.status}): ${errorText}`);
+      // Simulate API delay
+      await simulateApiDelay(2000);
+      
+      // Return mock data
+      const mockResults = [...mockSearchResults];
+      
+      // Customize the first result to reference the search query
+      if (mockResults.length > 0 && mockResults[0].isOriginalSource) {
+        mockResults[0].title = `Original Source: ${query}`;
       }
-
-      const data = await response.json();
-      console.log('API response:', data);
       
-      // Transform the API response to our SearchResult format
-      return this.transformSearchResults(data, query);
+      // Generate additional results if needed
+      const enrichedResults = generateExtendedGraphData(mockResults);
+      
+      return enrichedResults;
     } catch (error) {
-      console.error('Search error:', error);
-      throw error; // Re-throw the error instead of falling back to mock data
+      console.error('Search error (using mock fallback):', error);
+      return mockSearchResults; // Always return mock data even on error
     }
   }
 
+  // Keeping this method for reference but not using it
   private transformSearchResults(data: any, originalQuery: string): SearchResult[] {
-    try {
-      const responseText = data.choices?.[0]?.message?.content || '';
-      console.log('Processing response text:', responseText);
-      
-      // Extract information from the text response
-      const results: SearchResult[] = [];
-      
-      // Extract potential sources from the response text
-      const sentences = responseText.split(/[.!?]+/);
-      let sourceCount = 0;
-      
-      for (const sentence of sentences) {
-        if (sourceCount >= 4) break; // Limit to 4 additional sources
-        
-        // Look for sentences that might mention sources
-        if (
-          sentence.includes('according to') || 
-          sentence.includes('reported by') || 
-          sentence.includes('published') ||
-          sentence.includes('article') ||
-          sentence.includes('source')
-        ) {
-          sourceCount++;
-          results.push({
-            title: sentence.trim(),
-            platform: this.extractPlatform(sentence),
-            timestamp: this.generateRandomPastDate(),
-            viralityScore: sourceCount === 1 ? 'High' : sourceCount === 2 ? 'Medium' : 'Low',
-            platformIcon: this.getPlatformIcon(this.extractPlatform(sentence)),
-            isOriginalSource: sourceCount === 1 // First result is the original source
-          });
-        }
-      }
-      
-      // If no sources were identified, create some generic entries
-      if (results.length === 0) {
-        const platforms = ['Twitter', 'LinkedIn', 'Reddit', 'Facebook'];
-        for (let i = 0; i < 3; i++) {
-          results.push({
-            title: `Related content for: ${originalQuery}`,
-            platform: platforms[i],
-            timestamp: this.generateRandomPastDate(),
-            viralityScore: i === 0 ? 'High' : i === 1 ? 'Medium' : 'Low',
-            platformIcon: this.getPlatformIcon(platforms[i]),
-            isOriginalSource: i === 0 // First result is the original source
-          });
-        }
-      }
-      
-      console.log('Transformed results:', results);
-      return results;
-    } catch (error) {
-      console.error('Error transforming search results:', error);
-      throw error; // Re-throw the error instead of falling back to mock data
-    }
+    // This method is no longer used since we're returning mock data directly
+    console.log('Using mock data instead of transforming API results');
+    return mockSearchResults;
   }
   
   private extractPlatform(text: string): string {
