@@ -85,7 +85,7 @@ const TopbarWithRightNavRoot = React.forwardRef<
   return (
     <nav
       className={SubframeUtils.twClassNames(
-        "flex w-full items-center gap-4 bg-default-background px-6 py-4",
+        "flex w-full items-center gap-4 bg-default-background py-4",
         className
       )}
       ref={ref as any}

@@ -48,51 +48,55 @@ const DefaultPageLayoutRoot = React.forwardRef<
       ref={ref as any}
       {...otherProps}
     >
-      <TopbarWithRightNav
-        leftSlot={
-          <img
-            className="h-6 flex-none object-cover"
-            src="https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/y2rsnhq3mex4auk54aye.png"
+      <div className="flex w-full flex-col items-center">
+        <div className="w-full max-w-[1120px] px-6">
+          <TopbarWithRightNav
+            leftSlot={
+              <img
+                className="h-6 flex-none object-cover"
+                src="https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/y2rsnhq3mex4auk54aye.png"
+              />
+            }
+            rightSlot={
+              <>
+                <div className="flex items-center justify-end gap-2">
+                  <Badge variant="neutral">Free Trial</Badge>
+                </div>
+                <SubframeCore.DropdownMenu.Root>
+                  <SubframeCore.DropdownMenu.Trigger asChild={true}>
+                    <Avatar image={user?.picture || "https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/fychrij7dzl8wgq2zjq9.avif"}>
+                      {user?.name?.charAt(0) || "A"}
+                    </Avatar>
+                  </SubframeCore.DropdownMenu.Trigger>
+                  <SubframeCore.DropdownMenu.Portal>
+                    <SubframeCore.DropdownMenu.Content
+                      side="bottom"
+                      align="end"
+                      sideOffset={4}
+                      asChild={true}
+                    >
+                      <DropdownMenu>
+                        <DropdownMenu.DropdownItem icon={<FeatherUser />}>
+                          Profile
+                        </DropdownMenu.DropdownItem>
+                        <DropdownMenu.DropdownItem icon={<FeatherSettings />}>
+                          Settings
+                        </DropdownMenu.DropdownItem>
+                        <DropdownMenu.DropdownItem icon={<FeatherLogOut />} onClick={handleLogout}>
+                          Log out
+                        </DropdownMenu.DropdownItem>
+                      </DropdownMenu>
+                    </SubframeCore.DropdownMenu.Content>
+                  </SubframeCore.DropdownMenu.Portal>
+                </SubframeCore.DropdownMenu.Root>
+              </>
+            }
           />
-        }
-        rightSlot={
-          <>
-            <div className="flex items-center justify-end gap-2">
-              <Badge variant="neutral">Free Trial</Badge>
-            </div>
-            <SubframeCore.DropdownMenu.Root>
-              <SubframeCore.DropdownMenu.Trigger asChild={true}>
-                <Avatar image={user?.picture || "https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/fychrij7dzl8wgq2zjq9.avif"}>
-                  {user?.name?.charAt(0) || "A"}
-                </Avatar>
-              </SubframeCore.DropdownMenu.Trigger>
-              <SubframeCore.DropdownMenu.Portal>
-                <SubframeCore.DropdownMenu.Content
-                  side="bottom"
-                  align="end"
-                  sideOffset={4}
-                  asChild={true}
-                >
-                  <DropdownMenu>
-                    <DropdownMenu.DropdownItem icon={<FeatherUser />}>
-                      Profile
-                    </DropdownMenu.DropdownItem>
-                    <DropdownMenu.DropdownItem icon={<FeatherSettings />}>
-                      Settings
-                    </DropdownMenu.DropdownItem>
-                    <DropdownMenu.DropdownItem icon={<FeatherLogOut />} onClick={handleLogout}>
-                      Log out
-                    </DropdownMenu.DropdownItem>
-                  </DropdownMenu>
-                </SubframeCore.DropdownMenu.Content>
-              </SubframeCore.DropdownMenu.Portal>
-            </SubframeCore.DropdownMenu.Root>
-          </>
-        }
-      />
+        </div>
+      </div>
       {children ? (
         <div className="flex w-full grow shrink-0 basis-0 flex-col items-center overflow-y-auto bg-default-background">
-          <div className="w-full max-w-[1280px] px-6">
+          <div className="w-full max-w-[1120px] px-6">
             {children}
           </div>
         </div>
